@@ -1,0 +1,39 @@
+{
+    "i18n": true,
+    "type": "panel",
+    "items": {
+        "ip": {
+            "type": "text",
+            "label": {
+                    "de": "IP-Adresse",
+                    "en": "IP Address"
+            },
+            "newLine": true
+        },
+        "user": {
+            "type": "text",
+            "label": {
+                    "de": "Benutzername",
+                    "en": "Username"
+            },
+            "newLine": false
+        },
+        "password": {
+            "type": "password",
+            "label": {
+                    "de": "Passwort",
+                    "en": "Password"
+            },
+            "newLine": false
+        },
+
+          "database": {
+            "type": "text",
+            "label": {
+                    "de": "Datenbank",
+                    "en": "Database"
+            },
+            "newLine": false
+        }
+    }
+}

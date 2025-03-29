@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/lib/lib.ts"],
+  "sourcesContent": ["import { SqlNumberTable } from \"../types/types\";\n\nexport function calculateAverage(rows: SqlNumberTable[]): number {\n    let sum = 0;\n    rows.forEach((row) => {\n        sum += row.val;\n    });\n    return sum / rows.length;\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAEO,SAAS,iBAAiB,MAAgC;AAC7D,MAAI,MAAM;AACV,OAAK,QAAQ,CAAC,QAAQ;AAClB,WAAO,IAAI;AAAA,EACf,CAAC;AACD,SAAO,MAAM,KAAK;AACtB;",
+  "names": []
+}

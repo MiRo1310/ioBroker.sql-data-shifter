@@ -1,39 +1,136 @@
 {
-    "i18n": true,
-    "type": "panel",
-    "items": {
+  "i18n": true,
+  "type": "tabs",
+  "items": {
+    "config": {
+      "label": {
+        "de": "Konfiguration",
+        "en": "Configuration"
+      },
+      "items": {
         "ip": {
-            "type": "text",
-            "label": {
-                    "de": "IP-Adresse",
-                    "en": "IP Address"
-            },
-            "newLine": true
+          "type": "text",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "label": {
+            "de": "IP-Adresse",
+            "en": "IP Address"
+          },
+          "newLine": true
         },
         "user": {
-            "type": "text",
-            "label": {
-                    "de": "Benutzername",
-                    "en": "Username"
-            },
-            "newLine": false
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "type": "text",
+          "label": {
+            "de": "Benutzername",
+            "en": "Username"
+          },
+          "newLine": true
         },
         "password": {
-            "type": "password",
-            "label": {
-                    "de": "Passwort",
-                    "en": "Password"
-            },
-            "newLine": false
+          "type": "password",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "label": {
+            "de": "Passwort",
+            "en": "Password"
+          },
+          "newLine": false
         },
-
-          "database": {
-            "type": "text",
-            "label": {
-                    "de": "Datenbank",
-                    "en": "Database"
-            },
-            "newLine": false
+        "database": {
+          "type": "text",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "label": {
+            "de": "Datenbank",
+            "en": "Database"
+          },
+          "newLine": true
         }
+      }
+    },
+    "global": {
+      "label": {
+        "de": "Zeitpläne",
+        "en": "Schedules"
+      },
+      "items": {
+        "type": "panel",
+        "items": {
+          "type": "table",
+          "label": {
+            "en": "Schedule",
+            "de": "Zeitplan"
+          },
+          "items": [
+            {
+              "type": "cron",
+              "complex": true,
+              "width": "15%",
+              "title": {
+                "en": "Schedule",
+                "de": "Zeitplan"
+              },
+              "attr": "schedule",
+              "filter": false,
+              "sort": true,
+              "default": ""
+            },
+            {
+              "type": "text",
+              "width": "10%",
+              "title": {
+                "en": "ID",
+                "de": "ID"
+              },
+              "attr": "id",
+              "filter": false,
+              "sort": true,
+              "default": ""
+            },
+            {
+              "type": "text",
+              "width": "20%",
+              "title": {
+                "en": "From table",
+                "de": "Von Tabelle"
+              },
+              "attr": "tableFrom",
+              "filter": false,
+              "sort": true,
+              "default": ""
+            },
+            {
+              "type": "text",
+              "width": "20%",
+              "title": {
+                "en": "Target table",
+                "de": "Ziel-Tabelle"
+              },
+              "attr": "tableTo",
+              "filter": false,
+              "sort": true,
+              "default": ""
+            },
+            {
+              "type": "checkbox",
+              "title": {
+                "en": "Delete",
+                "de": "Löschen"
+              },
+              "attr": "delete",
+              "filter": false,
+              "sort": true,
+              "default": ""
+            }
+          ]
+        }
+      }
     }
+  }
 }

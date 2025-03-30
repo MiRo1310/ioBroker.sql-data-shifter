@@ -55,13 +55,15 @@ class SqlDataShifter extends utils.Adapter {
             return;
         }
 
+        this.log.debug(JSON.stringify(this.config));
+
         await createNewTable("IobrokerPvPowerBig_5min");
         await createNewTable("IobrokerPvPowerSmall_5min");
 
         this.scheduleJob.push(
-            schedule.scheduleJob("*/5 * * * * *", () => {
+            schedule.scheduleJob("*/5 * * * *", () => {
                 const table: SqlTables = "ts_number";
-                this.log.info("Scheduled job running every 5 seconds");
+                this.log.info("Scheduled job running every 5 minutes");
                 const data: Ids[] = [
                     { id: 1, table: "IobrokerPvPowerSmall_5min" },
                     { id: 2, table: "IobrokerPvPowerBig_5min" },

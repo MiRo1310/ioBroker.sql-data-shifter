@@ -61,12 +61,13 @@ class SqlDataShifter extends utils.Adapter {
     if (!isConnectionSuccessful) {
       return;
     }
+    this.log.debug(JSON.stringify(this.config));
     await (0, import_querys.createNewTable)("IobrokerPvPowerBig_5min");
     await (0, import_querys.createNewTable)("IobrokerPvPowerSmall_5min");
     this.scheduleJob.push(
-      import_node_schedule.default.scheduleJob("*/5 * * * * *", () => {
+      import_node_schedule.default.scheduleJob("*/5 * * * *", () => {
         const table = "ts_number";
-        this.log.info("Scheduled job running every 5 seconds");
+        this.log.info("Scheduled job running every 5 minutes");
         const data = [
           { id: 1, table: "IobrokerPvPowerSmall_5min" },
           { id: 2, table: "IobrokerPvPowerBig_5min" }

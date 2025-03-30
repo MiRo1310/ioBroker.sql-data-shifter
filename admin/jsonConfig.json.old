@@ -3,7 +3,6 @@
   "type": "tabs",
   "items": {
     "config": {
-      "type": "panel",
       "label": {
         "de": "Konfiguration",
         "en": "Configuration"
@@ -56,13 +55,13 @@
       }
     },
     "global": {
-      "type": "panel",
       "label": {
         "de": "Zeitpläne",
         "en": "Schedules"
       },
       "items": {
-        "table": {
+        "type": "panel",
+        "items": {
           "type": "table",
           "label": {
             "en": "Schedule",

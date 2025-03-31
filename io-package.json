@@ -44,7 +44,7 @@
       "zh-cn": "sql-data-shifter"
     },
     "authors": [
-      "Miro1310 <michael.roling@gmx.de>"
+      "MiRo1310 <michael.roling@gmx.de>"
     ],
     "keywords": [
       "ioBroker",
@@ -59,8 +59,8 @@
     "platform": "Javascript/Node.js",
     "icon": "sql-data-shifter.png",
     "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/Miro1310/ioBroker.sql-data-shifter/main/admin/sql-data-shifter.png",
-    "readme": "https://github.com/Miro1310/ioBroker.sql-data-shifter/blob/main/README.md",
+    "extIcon": "https://raw.githubusercontent.com/MiRo1310/ioBroker.sql-data-shifter/main/admin/sql-data-shifter.png",
+    "readme": "https://github.com/MiRo1310/ioBroker.sql-data-shifter/blob/main/README.md",
     "loglevel": "info",
     "tier": 3,
     "mode": "daemon",

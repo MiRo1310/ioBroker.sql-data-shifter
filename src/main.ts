@@ -47,7 +47,6 @@ class SqlDataShifter extends utils.Adapter {
             isConnectionSuccessful = await useConnection(async (connection) => {
                 if (connection) {
                     await this.setState("info.connection", true, true);
-                    this.log.info("Connection successful");
                     return true;
                 }
                 this.log.error("Connection failed");
@@ -56,11 +55,13 @@ class SqlDataShifter extends utils.Adapter {
         } catch (e) {
             console.error(e);
         }
+        this.log.debug("xxxxxxx");
+        this.log.debug(JSON.stringify(this.config));
+
+        this.log.debug("xxxxxxx");
         if (!isConnectionSuccessful) {
             return;
         }
-
-        this.log.debug(JSON.stringify(this.config));
 
         await createNewTable("IobrokerPvPowerBig_5min");
         await createNewTable("IobrokerPvPowerSmall_5min");

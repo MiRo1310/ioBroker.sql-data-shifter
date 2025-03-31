@@ -44,6 +44,7 @@ async function useConnection(cb) {
     console.log(`Connected to database: ${dbConfig.host}`);
     return await cb(connection);
   } catch (err) {
+    console.error(err);
     throw new Error("Error with database operation");
   } finally {
     if (connection) {

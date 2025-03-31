@@ -14,6 +14,12 @@
           "lg": 2,
           "md": 6,
           "sm": 12,
+          "validator": "!!data.ip.length",
+          "validatorErrorText": {
+            "de": "Bitte geben Sie eine IP-Adresse ein",
+            "en": "Please enter an IP address"
+          },
+          "validatorNoSaveOnError": true,
           "label": {
             "de": "IP-Adresse",
             "en": "IP Address"
@@ -25,6 +31,12 @@
           "md": 6,
           "sm": 12,
           "type": "text",
+          "validator": "!!data.user.length",
+          "validatorErrorText": {
+            "de": "Bitte geben Sie einen Benutzernamen ein",
+            "en": "Please enter a username"
+          },
+          "validatorNoSaveOnError": true,
           "label": {
             "de": "Benutzername",
             "en": "Username"
@@ -36,6 +48,12 @@
           "lg": 2,
           "md": 6,
           "sm": 12,
+          "validator": "!!data.password.length",
+          "validatorErrorText": {
+            "de": "Bitte geben Sie ein Passwort ein",
+            "en": "Please enter a password"
+          },
+          "validatorNoSaveOnError": true,
           "label": {
             "de": "Passwort",
             "en": "Password"
@@ -47,6 +65,12 @@
           "lg": 2,
           "md": 6,
           "sm": 12,
+          "validator": "!!data.database.length",
+          "validatorErrorText": {
+            "de": "Bitte geben Sie einen Datenbanknamen ein",
+            "en": "Please enter a database name"
+          },
+          "validatorNoSaveOnError": true,
           "label": {
             "de": "Datenbank",
             "en": "Database"
@@ -73,6 +97,12 @@
               "type": "cron",
               "complex": true,
               "width": "15%",
+              "validator": "data.schedule.length",
+              "validatorErrorText": {
+                "de": "Bitte geben Sie einen Zeitplan ein",
+                "en": "Please enter a schedule"
+              },
+              "validatorNoSaveOnError": true,
               "title": {
                 "en": "Schedule",
                 "de": "Zeitplan"
@@ -90,6 +120,12 @@
                 "de": "ID"
               },
               "attr": "id",
+              "validator": "data.id.length",
+              "validatorErrorText": {
+                "de": "Bitte geben Sie eine ID ein",
+                "en": "Please enter an id"
+              },
+              "validatorNoSaveOnError": true,
               "filter": false,
               "sort": true,
               "default": ""
@@ -97,6 +133,12 @@
             {
               "type": "text",
               "width": "20%",
+              "validator": "data.tableFrom.length",
+              "validatorErrorText": {
+                "de": "Bitte geben Sie eine Quelltabelle ein",
+                "en": "Please enter a source table"
+              },
+              "validatorNoSaveOnError": true,
               "title": {
                 "en": "From table",
                 "de": "Von Tabelle"
@@ -109,6 +151,12 @@
             {
               "type": "text",
               "width": "20%",
+              "validator": "data.tableTo.length",
+              "validatorErrorText": {
+                "de": "Bitte geben Sie eine Zieltabelle ein",
+                "en": "Please enter a target table"
+              },
+              "validatorNoSaveOnError": true,
               "title": {
                 "en": "Target table",
                 "de": "Ziel-Tabelle"
@@ -117,6 +165,70 @@
               "filter": false,
               "sort": true,
               "default": ""
+            },
+            {
+              "type": "text",
+              "width": "20%",
+              "title": {
+                "en": "Unit",
+                "de": "Einheit"
+              },
+              "attr": "unit",
+              "filter": false,
+              "sort": true,
+              "default": ""
+            },
+            {
+              "type": "number",
+              "title": {
+                "en": "Factor",
+                "de": "Faktor"
+              },
+              "attr": "factor",
+              "filter": false,
+              "sort": true,
+              "default": 1
+            },
+            {
+              "type": "select",
+              "label": {
+                "en": "Please select",
+                "de": "Bitte auswählen"
+              },
+              "title": {
+                "en": "Operation",
+                "de": "Operation"
+              },
+              "validator": "data.operation",
+              "validatorErrorText": {
+                "de": "Bitte wähle aus",
+                "en": "Please select"
+              },
+              "validatorNoSaveOnError": true,
+              "attr": "operation",
+              "options": [
+                {
+                  "value": "dif",
+                  "label": {
+                    "en": "Difference",
+                    "de": "Differenz"
+                  }
+                },
+                {
+                  "value": "avg",
+                  "label": {
+                    "en": "Average",
+                    "de": "Durchschnitt"
+                  }
+                },
+                {
+                  "value": "sum",
+                  "label": {
+                    "en": "Sum",
+                    "de": "Summe"
+                  }
+                }
+              ]
             },
             {
               "type": "checkbox",
@@ -128,6 +240,17 @@
               "filter": false,
               "sort": true,
               "default": ""
+            },
+            {
+              "type": "checkbox",
+              "title": {
+                "en": "Active",
+                "de": "Aktiv"
+              },
+              "attr": "active",
+              "filter": false,
+              "sort": true,
+              "default": true
             }
           ]
         }

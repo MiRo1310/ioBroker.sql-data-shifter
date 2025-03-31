@@ -35,7 +35,6 @@ class SqlDataShifter extends utils.Adapter {
     });
     this.scheduleJob = [];
     this.on("ready", this.onReady.bind(this));
-    this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
@@ -44,66 +43,96 @@ class SqlDataShifter extends utils.Adapter {
   async onReady() {
     console.log("SqlDataShifter ready");
     const dbConfig = {};
+    if (!this.config.user || !this.config.password || !this.config.database) {
+      return;
+    }
     dbConfig.host = this.config.ip;
     dbConfig.user = this.config.user;
     dbConfig.password = this.config.password;
     dbConfig.database = this.config.database;
     (0, import_connection.setDBConfig)(dbConfig);
-    const isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
-      if (connection) {
-        await this.setState("info.connection", true, true);
-        this.log.info("Connection successful");
-        return true;
-      }
-      this.log.error("Connection failed");
-      return false;
-    });
+    let isConnectionSuccessful = false;
+    try {
+      isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
+        if (connection) {
+          await this.setState("info.connection", true, true);
+          return true;
+        }
+        this.log.error("Connection failed");
+        return false;
+      });
+    } catch (e) {
+      console.error(e);
+    }
     if (!isConnectionSuccessful) {
       return;
     }
     this.log.debug(JSON.stringify(this.config));
-    await (0, import_querys.createNewTable)("IobrokerPvPowerBig_5min");
-    await (0, import_querys.createNewTable)("IobrokerPvPowerSmall_5min");
-    this.scheduleJob.push(
-      import_node_schedule.default.scheduleJob("*/5 * * * *", () => {
-        const table = "ts_number";
-        this.log.info("Scheduled job running every 5 minutes");
-        const data = [
-          { id: 1, table: "IobrokerPvPowerSmall_5min" },
-          { id: 2, table: "IobrokerPvPowerBig_5min" }
-        ];
-        data.forEach(async (entry) => {
+    let oldTimestamp = 0;
+    for (const entry of this.config.table) {
+      if (!entry.active) {
+        continue;
+      }
+      await (0, import_querys.createNewTable)(entry.tableTo);
+      this.scheduleJob.push(
+        import_node_schedule.default.scheduleJob(entry.schedule, async () => {
+          const table = entry.tableFrom;
           await (0, import_connection.useConnection)(async (connection) => {
             const date = Date.now();
-            const selectQuery = `SELECT *
-                                             from ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
-            const [rows] = await connection.execute(selectQuery, [entry.id, date]);
+            let selectQuery;
+            if (entry.delete) {
+              selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?`;
+            } else {
+              selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?
+                                             AND ts > ?`;
+            }
+            const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
+            oldTimestamp = date;
             const result = rows;
-            const average = (0, import_lib.calculateAverage)(result);
-            if (!average) return;
-            const saveQuery = `INSERT INTO ${entry.table} (id, ts, val)
-                                           VALUES (?, ?, ?)`;
-            await connection.execute(saveQuery, [entry.id, date, average]);
-            const deleteQuery = `DELETE
-                                             FROM ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
-            await connection.execute(deleteQuery, [entry.id, date]);
+            if (result.length === 0) {
+              return;
+            }
+            if (entry.operation === "sum") {
+              const sum = (0, import_lib.sumResult)(result) * entry.factor;
+              await (0, import_querys.saveData)(entry, date, sum);
+            }
+            if (entry.operation === "dif") {
+              const sum = (0, import_lib.differenceResult)(result) * entry.factor;
+              await (0, import_querys.saveData)(entry, date, sum);
+            }
+            if (entry.operation === "avg") {
+              const average = (0, import_lib.calculateAverage)(result) * entry.factor;
+              await (0, import_querys.saveData)(entry, date, average);
+            }
+            if (entry.delete) {
+              const deleteQuery = `DELETE
+                                                 FROM ${table}
+                                                 WHERE id = ?
+                                                   AND ts <= ?`;
+              await connection.execute(deleteQuery, [entry.id, date]);
+            }
           });
-        });
-      })
-    );
+        })
+      );
+    }
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!
+   *
+   * @param callback Callback
    */
   onUnload(callback) {
     try {
       this.scheduleJob.forEach((job) => job.cancel());
       callback();
     } catch (e) {
+      console.error(e);
       callback();
     }
   }
@@ -121,16 +150,21 @@ class SqlDataShifter extends utils.Adapter {
   //         this.log.info(`object ${id} deleted`);
   //     }
   // }
-  /**
-   * Is called if a subscribed state changes
-   */
-  onStateChange(id, state) {
-    if (state) {
-      this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-    } else {
-      this.log.info(`state ${id} deleted`);
-    }
-  }
+  // /**
+  //  * Is called if a subscribed state changes
+  //  *
+  //  * @param id
+  //  * @param state
+  //  */
+  // private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
+  //     if (state) {
+  //         // The state was changed
+  //         this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+  //     } else {
+  //         // The state was deleted
+  //         this.log.info(`state ${id} deleted`);
+  //     }
+  // }
   // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
   // /**
   //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...

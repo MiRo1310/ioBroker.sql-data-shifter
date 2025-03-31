@@ -5,11 +5,13 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
-import { DBConfig, Ids, SqlNumberTable, SqlTables } from "./types/types";
+import type { DBConfig, SqlNumberTable } from "./types/types";
 import { setDBConfig, useConnection } from "./connection";
-import { calculateAverage } from "./lib/lib";
-import schedule, { Job } from "node-schedule";
-import { createNewTable } from "./lib/querys";
+import { calculateAverage, differenceResult, sumResult } from "./lib/lib";
+import type { Job } from "node-schedule";
+// eslint-disable-next-line no-duplicate-imports
+import schedule from "node-schedule";
+import { createNewTable, saveData } from "./lib/querys";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -21,7 +23,7 @@ class SqlDataShifter extends utils.Adapter {
         });
         this.scheduleJob = [];
         this.on("ready", this.onReady.bind(this));
-        this.on("stateChange", this.onStateChange.bind(this));
+        // this.on("stateChange", this.onStateChange.bind(this));
         // this.on("objectChange", this.onObjectChange.bind(this));
         // this.on("message", this.onMessage.bind(this));
         this.on("unload", this.onUnload.bind(this));
@@ -34,22 +36,29 @@ class SqlDataShifter extends utils.Adapter {
         console.log("SqlDataShifter ready");
         const dbConfig: DBConfig = {} as DBConfig;
 
+        if (!this.config.user || !this.config.password || !this.config.database) {
+            return;
+        }
+
         dbConfig.host = this.config.ip;
         dbConfig.user = this.config.user;
         dbConfig.password = this.config.password;
         dbConfig.database = this.config.database;
 
         setDBConfig(dbConfig);
-
-        const isConnectionSuccessful = await useConnection(async (connection) => {
-            if (connection) {
-                await this.setState("info.connection", true, true);
-                this.log.info("Connection successful");
-                return true;
-            }
-            this.log.error("Connection failed");
-            return false;
-        });
+        let isConnectionSuccessful = false;
+        try {
+            isConnectionSuccessful = await useConnection(async (connection) => {
+                if (connection) {
+                    await this.setState("info.connection", true, true);
+                    return true;
+                }
+                this.log.error("Connection failed");
+                return false;
+            });
+        } catch (e) {
+            console.error(e);
+        }
 
         if (!isConnectionSuccessful) {
             return;
@@ -57,48 +66,69 @@ class SqlDataShifter extends utils.Adapter {
 
         this.log.debug(JSON.stringify(this.config));
 
-        await createNewTable("IobrokerPvPowerBig_5min");
-        await createNewTable("IobrokerPvPowerSmall_5min");
+        let oldTimestamp = 0;
 
-        this.scheduleJob.push(
-            schedule.scheduleJob("*/5 * * * *", () => {
-                const table: SqlTables = "ts_number";
-                this.log.info("Scheduled job running every 5 minutes");
-                const data: Ids[] = [
-                    { id: 1, table: "IobrokerPvPowerSmall_5min" },
-                    { id: 2, table: "IobrokerPvPowerBig_5min" },
-                ];
+        for (const entry of this.config.table) {
+            if (!entry.active) {
+                continue;
+            }
+            await createNewTable(entry.tableTo);
 
-                data.forEach(async (entry) => {
+            this.scheduleJob.push(
+                schedule.scheduleJob(entry.schedule, async () => {
+                    const table = entry.tableFrom;
+
                     await useConnection(async (connection) => {
                         const date = Date.now();
 
-                        const selectQuery = `SELECT *
-                                             from ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
-
-                        const [rows] = await connection.execute(selectQuery, [entry.id, date]);
+                        let selectQuery: string;
+                        if (entry.delete) {
+                            selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?`;
+                        } else {
+                            selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?
+                                             AND ts > ?`;
+                        }
+                        const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
+                        oldTimestamp = date;
                         const result = rows as SqlNumberTable[];
 
-                        const average = calculateAverage(result);
-                        if (!average) return;
+                        if (result.length === 0) {
+                            return;
+                        }
 
-                        const saveQuery = `INSERT INTO ${entry.table} (id, ts, val)
-                                           VALUES (?, ?, ?)`;
+                        if (entry.operation === "sum") {
+                            const sum = sumResult(result) * entry.factor;
+                            await saveData(entry, date, sum);
+                        }
 
-                        await connection.execute(saveQuery, [entry.id, date, average]);
+                        if (entry.operation === "dif") {
+                            const sum = differenceResult(result) * entry.factor;
+                            await saveData(entry, date, sum);
+                        }
 
-                        const deleteQuery = `DELETE
-                                             FROM ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
+                        if (entry.operation === "avg") {
+                            const average = calculateAverage(result) * entry.factor;
+                            await saveData(entry, date, average);
+                        }
 
-                        await connection.execute(deleteQuery, [entry.id, date]);
+                        if (entry.delete) {
+                            const deleteQuery = `DELETE
+                                                 FROM ${table}
+                                                 WHERE id = ?
+                                                   AND ts <= ?`;
+
+                            await connection.execute(deleteQuery, [entry.id, date]);
+                        }
                     });
-                });
-            }),
-        );
+                }),
+            );
+        }
 
         // Initialize your adapter here
 
@@ -145,6 +175,8 @@ class SqlDataShifter extends utils.Adapter {
 
     /**
      * Is called when adapter shuts down - callback has to be called under any circumstances!
+     *
+     * @param callback Callback
      */
     private onUnload(callback: () => void): void {
         try {
@@ -157,6 +189,7 @@ class SqlDataShifter extends utils.Adapter {
 
             callback();
         } catch (e) {
+            console.error(e);
             callback();
         }
     }
@@ -176,18 +209,21 @@ class SqlDataShifter extends utils.Adapter {
     //     }
     // }
 
-    /**
-     * Is called if a subscribed state changes
-     */
-    private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
-        if (state) {
-            // The state was changed
-            this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-        } else {
-            // The state was deleted
-            this.log.info(`state ${id} deleted`);
-        }
-    }
+    // /**
+    //  * Is called if a subscribed state changes
+    //  *
+    //  * @param id
+    //  * @param state
+    //  */
+    // private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
+    //     if (state) {
+    //         // The state was changed
+    //         this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+    //     } else {
+    //         // The state was deleted
+    //         this.log.info(`state ${id} deleted`);
+    //     }
+    // }
 
     // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
     // /**

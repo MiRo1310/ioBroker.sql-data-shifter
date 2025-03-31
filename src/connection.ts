@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import { DBConfig } from "./types/types";
+import type { DBConfig } from "./types/types";
 
 let dbConfig: DBConfig = {} as DBConfig;
 
@@ -14,6 +14,8 @@ export async function useConnection<T>(cb: (connection: mysql.Connection) => Pro
         console.log(`Connected to database: ${dbConfig.host}`);
         return await cb(connection);
     } catch (err) {
+        // FIXME Add this.log.error
+        console.error(err);
         throw new Error("Error with database operation");
     } finally {
         if (connection) {

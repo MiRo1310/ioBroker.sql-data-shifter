@@ -5,10 +5,12 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
-import { DBConfig, Ids, SqlNumberTable, SqlTables } from "./types/types";
+import type { DBConfig, Ids, SqlNumberTable, SqlTables } from "./types/types";
 import { setDBConfig, useConnection } from "./connection";
 import { calculateAverage } from "./lib/lib";
-import schedule, { Job } from "node-schedule";
+import type { Job } from "node-schedule";
+// eslint-disable-next-line no-duplicate-imports
+import schedule from "node-schedule";
 import { createNewTable } from "./lib/querys";
 
 class SqlDataShifter extends utils.Adapter {
@@ -21,7 +23,7 @@ class SqlDataShifter extends utils.Adapter {
         });
         this.scheduleJob = [];
         this.on("ready", this.onReady.bind(this));
-        this.on("stateChange", this.onStateChange.bind(this));
+        // this.on("stateChange", this.onStateChange.bind(this));
         // this.on("objectChange", this.onObjectChange.bind(this));
         // this.on("message", this.onMessage.bind(this));
         this.on("unload", this.onUnload.bind(this));
@@ -82,8 +84,9 @@ class SqlDataShifter extends utils.Adapter {
                         const result = rows as SqlNumberTable[];
 
                         const average = calculateAverage(result);
-                        if (!average) return;
-
+                        if (!average) {
+                            return;
+                        }
                         const saveQuery = `INSERT INTO ${entry.table} (id, ts, val)
                                            VALUES (?, ?, ?)`;
 
@@ -145,6 +148,8 @@ class SqlDataShifter extends utils.Adapter {
 
     /**
      * Is called when adapter shuts down - callback has to be called under any circumstances!
+     *
+     * @param callback Callback
      */
     private onUnload(callback: () => void): void {
         try {
@@ -157,6 +162,7 @@ class SqlDataShifter extends utils.Adapter {
 
             callback();
         } catch (e) {
+            console.error(e);
             callback();
         }
     }
@@ -176,18 +182,21 @@ class SqlDataShifter extends utils.Adapter {
     //     }
     // }
 
-    /**
-     * Is called if a subscribed state changes
-     */
-    private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
-        if (state) {
-            // The state was changed
-            this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-        } else {
-            // The state was deleted
-            this.log.info(`state ${id} deleted`);
-        }
-    }
+    // /**
+    //  * Is called if a subscribed state changes
+    //  *
+    //  * @param id
+    //  * @param state
+    //  */
+    // private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
+    //     if (state) {
+    //         // The state was changed
+    //         this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+    //     } else {
+    //         // The state was deleted
+    //         this.log.info(`state ${id} deleted`);
+    //     }
+    // }
 
     // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
     // /**

@@ -1,4 +1,4 @@
-import { SqlNumberTable } from "../types/types";
+import type { SqlNumberTable } from "../types/types";
 
 export function calculateAverage(rows: SqlNumberTable[]): number {
     let sum = 0;

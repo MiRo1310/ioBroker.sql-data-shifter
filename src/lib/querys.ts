@@ -1,4 +1,4 @@
-import { SqlTables } from "../types/types";
+import type { SqlTables } from "../types/types";
 import { useConnection } from "../connection";
 
 export async function createNewTable(table: SqlTables): Promise<void> {

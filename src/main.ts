@@ -42,17 +42,20 @@ class SqlDataShifter extends utils.Adapter {
         dbConfig.database = this.config.database;
 
         setDBConfig(dbConfig);
-
-        const isConnectionSuccessful = await useConnection(async (connection) => {
-            if (connection) {
-                await this.setState("info.connection", true, true);
-                this.log.info("Connection successful");
-                return true;
-            }
-            this.log.error("Connection failed");
-            return false;
-        });
-
+        let isConnectionSuccessful = false;
+        try {
+            isConnectionSuccessful = await useConnection(async (connection) => {
+                if (connection) {
+                    await this.setState("info.connection", true, true);
+                    this.log.info("Connection successful");
+                    return true;
+                }
+                this.log.error("Connection failed");
+                return false;
+            });
+        } catch (e) {
+            console.error(e);
+        }
         if (!isConnectionSuccessful) {
             return;
         }

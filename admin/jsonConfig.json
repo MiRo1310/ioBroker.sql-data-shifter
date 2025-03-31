@@ -119,6 +119,41 @@
               "default": ""
             },
             {
+              "type": "select",
+              "label": {
+                "en": "Please select",
+                "de": "Bitte auswählen"
+              },
+              "title": {
+                "en": "Operation",
+                "de": "Operation"
+              },
+              "attr": "operation",
+              "options": [
+                {
+                  "value": "dif",
+                  "label": {
+                    "en": "Difference",
+                    "de": "Differenz"
+                  }
+                },
+                {
+                  "value": "avg",
+                  "label": {
+                    "en": "Average",
+                    "de": "Durchschnitt"
+                  }
+                },
+                {
+                  "value": "sum",
+                  "label": {
+                    "en": "Sum",
+                    "de": "Summe"
+                  }
+                }
+              ]
+            },
+            {
               "type": "checkbox",
               "title": {
                 "en": "Delete",

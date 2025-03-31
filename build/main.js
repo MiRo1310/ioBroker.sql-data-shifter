@@ -43,6 +43,9 @@ class SqlDataShifter extends utils.Adapter {
   async onReady() {
     console.log("SqlDataShifter ready");
     const dbConfig = {};
+    if (!this.config.user || !this.config.password || !this.config.database) {
+      return;
+    }
     dbConfig.host = this.config.ip;
     dbConfig.user = this.config.user;
     dbConfig.password = this.config.password;
@@ -61,9 +64,7 @@ class SqlDataShifter extends utils.Adapter {
     } catch (e) {
       console.error(e);
     }
-    this.log.debug("xxxxxxx");
     this.log.debug(JSON.stringify(this.config));
-    this.log.debug("xxxxxxx");
     if (!isConnectionSuccessful) {
       return;
     }

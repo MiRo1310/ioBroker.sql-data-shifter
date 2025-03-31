@@ -64,45 +64,63 @@ class SqlDataShifter extends utils.Adapter {
     } catch (e) {
       console.error(e);
     }
-    this.log.debug(JSON.stringify(this.config));
     if (!isConnectionSuccessful) {
       return;
     }
-    await (0, import_querys.createNewTable)("IobrokerPvPowerBig_5min");
-    await (0, import_querys.createNewTable)("IobrokerPvPowerSmall_5min");
-    this.scheduleJob.push(
-      import_node_schedule.default.scheduleJob("*/5 * * * *", () => {
-        const table = "ts_number";
-        this.log.info("Scheduled job running every 5 minutes");
-        const data = [
-          { id: 1, table: "IobrokerPvPowerSmall_5min" },
-          { id: 2, table: "IobrokerPvPowerBig_5min" }
-        ];
-        data.forEach(async (entry) => {
+    this.log.debug(JSON.stringify(this.config));
+    let oldTimestamp = 0;
+    for (const entry of this.config.table) {
+      if (!entry.active) {
+        continue;
+      }
+      await (0, import_querys.createNewTable)(entry.tableTo);
+      this.scheduleJob.push(
+        import_node_schedule.default.scheduleJob(entry.schedule, async () => {
+          const table = entry.tableFrom;
           await (0, import_connection.useConnection)(async (connection) => {
             const date = Date.now();
-            const selectQuery = `SELECT *
-                                             from ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
-            const [rows] = await connection.execute(selectQuery, [entry.id, date]);
+            let selectQuery;
+            if (entry.delete) {
+              selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?`;
+            } else {
+              selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?
+                                             AND ts > ?`;
+            }
+            const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
+            oldTimestamp = date;
             const result = rows;
-            const average = (0, import_lib.calculateAverage)(result);
-            if (!average) {
+            if (result.length === 0) {
               return;
             }
-            const saveQuery = `INSERT INTO ${entry.table} (id, ts, val)
-                                           VALUES (?, ?, ?)`;
-            await connection.execute(saveQuery, [entry.id, date, average]);
-            const deleteQuery = `DELETE
-                                             FROM ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
-            await connection.execute(deleteQuery, [entry.id, date]);
+            if (entry.operation === "sum") {
+              const sum = (0, import_lib.sumResult)(result) * entry.factor;
+              await (0, import_querys.saveData)(entry, date, sum);
+            }
+            if (entry.operation === "dif") {
+              const sum = (0, import_lib.differenceResult)(result) * entry.factor;
+              await (0, import_querys.saveData)(entry, date, sum);
+            }
+            if (entry.operation === "avg") {
+              const average = (0, import_lib.calculateAverage)(result) * entry.factor;
+              await (0, import_querys.saveData)(entry, date, average);
+            }
+            if (entry.delete) {
+              const deleteQuery = `DELETE
+                                                 FROM ${table}
+                                                 WHERE id = ?
+                                                   AND ts <= ?`;
+              await connection.execute(deleteQuery, [entry.id, date]);
+            }
           });
-        });
-      })
-    );
+        })
+      );
+    }
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!

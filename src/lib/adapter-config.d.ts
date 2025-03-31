@@ -8,8 +8,21 @@ declare global {
             user: string;
             ip: string;
             database: string;
+            table: TableItem[]
         }
     }
+}
+
+export interface TableItem {
+    schedule: string;
+    id: string;
+    tableFrom: string;
+    tableTo: string;
+    delete: boolean;
+    unit?: string
+    operation: "avg" | "sum" | "dif";
+    factor: number;
+    active: boolean;
 }
 
 // this is required so the above AdapterConfig is found by TypeScript / type checking

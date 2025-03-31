@@ -18,7 +18,9 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var lib_exports = {};
 __export(lib_exports, {
-  calculateAverage: () => calculateAverage
+  calculateAverage: () => calculateAverage,
+  differenceResult: () => differenceResult,
+  sumResult: () => sumResult
 });
 module.exports = __toCommonJS(lib_exports);
 function calculateAverage(rows) {
@@ -28,8 +30,23 @@ function calculateAverage(rows) {
   });
   return sum / rows.length;
 }
+function sumResult(rows) {
+  return rows.reduce((acc, row) => {
+    return acc + row.val;
+  }, 0);
+}
+function differenceResult(rows) {
+  const firstRow = rows[0];
+  const lastRow = rows[rows.length - 1];
+  if (!(firstRow == null ? void 0 : firstRow.val) || !(lastRow == null ? void 0 : lastRow.val)) {
+    return 0;
+  }
+  return lastRow.val - firstRow.val;
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  calculateAverage
+  calculateAverage,
+  differenceResult,
+  sumResult
 });
 //# sourceMappingURL=lib.js.map

@@ -11,7 +11,7 @@ export async function useConnection<T>(cb: (connection: mysql.Connection) => Pro
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
-        console.log(`Connected to database: ${dbConfig.host}`);
+
         return await cb(connection);
     } catch (err) {
         // FIXME Add this.log.error

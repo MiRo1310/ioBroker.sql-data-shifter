@@ -5,13 +5,13 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
-import type { DBConfig, Ids, SqlNumberTable, SqlTables } from "./types/types";
+import type { DBConfig, SqlNumberTable } from "./types/types";
 import { setDBConfig, useConnection } from "./connection";
-import { calculateAverage } from "./lib/lib";
+import { calculateAverage, differenceResult, sumResult } from "./lib/lib";
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
-import { createNewTable } from "./lib/querys";
+import { createNewTable, saveData } from "./lib/querys";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -60,55 +60,75 @@ class SqlDataShifter extends utils.Adapter {
             console.error(e);
         }
 
-        this.log.debug(JSON.stringify(this.config));
-
         if (!isConnectionSuccessful) {
             return;
         }
 
-        await createNewTable("IobrokerPvPowerBig_5min");
-        await createNewTable("IobrokerPvPowerSmall_5min");
+        this.log.debug(JSON.stringify(this.config));
 
-        this.scheduleJob.push(
-            schedule.scheduleJob("*/5 * * * *", () => {
-                const table: SqlTables = "ts_number";
-                this.log.info("Scheduled job running every 5 minutes");
-                const data: Ids[] = [
-                    { id: 1, table: "IobrokerPvPowerSmall_5min" },
-                    { id: 2, table: "IobrokerPvPowerBig_5min" },
-                ];
+        let oldTimestamp = 0;
 
-                data.forEach(async (entry) => {
+        for (const entry of this.config.table) {
+            if (!entry.active) {
+                continue;
+            }
+            await createNewTable(entry.tableTo);
+
+            this.scheduleJob.push(
+                schedule.scheduleJob(entry.schedule, async () => {
+                    const table = entry.tableFrom;
+
                     await useConnection(async (connection) => {
                         const date = Date.now();
 
-                        const selectQuery = `SELECT *
-                                             from ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
-
-                        const [rows] = await connection.execute(selectQuery, [entry.id, date]);
+                        let selectQuery: string;
+                        if (entry.delete) {
+                            selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?`;
+                        } else {
+                            selectQuery = `SELECT *
+                                           from ${table}
+                                           WHERE id = ?
+                                             AND ts <= ?
+                                             AND ts > ?`;
+                        }
+                        const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
+                        oldTimestamp = date;
                         const result = rows as SqlNumberTable[];
 
-                        const average = calculateAverage(result);
-                        if (!average) {
+                        if (result.length === 0) {
                             return;
                         }
-                        const saveQuery = `INSERT INTO ${entry.table} (id, ts, val)
-                                           VALUES (?, ?, ?)`;
 
-                        await connection.execute(saveQuery, [entry.id, date, average]);
+                        if (entry.operation === "sum") {
+                            const sum = sumResult(result) * entry.factor;
+                            await saveData(entry, date, sum);
+                        }
 
-                        const deleteQuery = `DELETE
-                                             FROM ${table}
-                                             WHERE id = ?
-                                               AND ts <= ?`;
+                        if (entry.operation === "dif") {
+                            const sum = differenceResult(result) * entry.factor;
+                            await saveData(entry, date, sum);
+                        }
 
-                        await connection.execute(deleteQuery, [entry.id, date]);
+                        if (entry.operation === "avg") {
+                            const average = calculateAverage(result) * entry.factor;
+                            await saveData(entry, date, average);
+                        }
+
+                        if (entry.delete) {
+                            const deleteQuery = `DELETE
+                                                 FROM ${table}
+                                                 WHERE id = ?
+                                                   AND ts <= ?`;
+
+                            await connection.execute(deleteQuery, [entry.id, date]);
+                        }
                     });
-                });
-            }),
-        );
+                }),
+            );
+        }
 
         // Initialize your adapter here
 

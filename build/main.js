@@ -75,26 +75,31 @@ class SqlDataShifter extends utils.Adapter {
       await (0, import_querys.createNewTable)(entry.tableTo);
       this.scheduleJob.push(
         import_node_schedule.default.scheduleJob(entry.schedule, async () => {
+          this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
           const table = entry.tableFrom;
           await (0, import_connection.useConnection)(async (connection) => {
             const date = Date.now();
             let selectQuery;
+            let rows;
             if (entry.delete) {
               selectQuery = `SELECT *
                                            from ${table}
                                            WHERE id = ?
                                              AND ts <= ?`;
+              [rows] = await connection.execute(selectQuery, [entry.id, date]);
             } else {
               selectQuery = `SELECT *
                                            from ${table}
                                            WHERE id = ?
                                              AND ts <= ?
                                              AND ts > ?`;
+              [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
             }
-            const [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
             entry.oldTimestamp = date;
             const result = rows;
+            this.log.debug(`Result: ${JSON.stringify(entry)}`);
             if (result.length === 0) {
+              this.log.debug(`No data found for ${entry.id}`);
               return;
             }
             if (entry.operation === "sum") {
@@ -109,7 +114,12 @@ class SqlDataShifter extends utils.Adapter {
               const average = (0, import_lib.calculateAverage)(result) * entry.factor;
               await (0, import_querys.saveData)(entry, date, average);
             }
+            if (entry.operation === "all") {
+              await (0, import_querys.saveDataArray)(entry, result);
+            }
+            this.log.debug(JSON.stringify(entry.delete));
             if (entry.delete) {
+              console.log("Deleting old data");
               const deleteQuery = `DELETE
                                                  FROM ${table}
                                                  WHERE id = ?

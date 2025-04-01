@@ -191,10 +191,6 @@
             },
             {
               "type": "select",
-              "label": {
-                "en": "Please select",
-                "de": "Bitte auswählen"
-              },
               "title": {
                 "en": "Operation",
                 "de": "Operation"
@@ -227,6 +223,13 @@
                     "en": "Sum",
                     "de": "Summe"
                   }
+                },
+                {
+                  "value": "all",
+                  "label": {
+                    "en": "All",
+                    "de": "Alles"
+                  }
                 }
               ]
             },
@@ -239,7 +242,7 @@
               "attr": "delete",
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": false
             },
             {
               "type": "checkbox",

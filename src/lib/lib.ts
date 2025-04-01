@@ -1,7 +1,7 @@
-import type { SqlNumberTable } from "../types/types";
+import type { SqlIobrokerAdapterRow } from "../types/types";
 import type { TableItem } from "./adapter-config";
 
-export function calculateAverage(rows: SqlNumberTable[]): number {
+export function calculateAverage(rows: SqlIobrokerAdapterRow[]): number {
     let sum = 0;
     rows.forEach((row) => {
         sum += row.val;
@@ -9,13 +9,13 @@ export function calculateAverage(rows: SqlNumberTable[]): number {
     return sum / rows.length;
 }
 
-export function sumResult(rows: SqlNumberTable[]): number {
+export function sumResult(rows: SqlIobrokerAdapterRow[]): number {
     return rows.reduce((acc, row) => {
         return acc + row.val;
     }, 0);
 }
 
-export function differenceResult(rows: SqlNumberTable[]): number {
+export function differenceResult(rows: SqlIobrokerAdapterRow[]): number {
     const firstRow = rows[0];
     const lastRow = rows[rows.length - 1];
 

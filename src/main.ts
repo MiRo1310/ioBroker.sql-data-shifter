@@ -5,13 +5,14 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
-import type { DBConfig, SqlNumberTable } from "./types/types";
+import type { DBConfig, SqlIobrokerAdapterRow } from "./types/types";
 import { setDBConfig, useConnection } from "./connection";
 import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } from "./lib/lib";
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
-import { createNewTable, saveData } from "./lib/querys";
+import { createNewTable, saveData, saveDataArray } from "./lib/querys";
+import type { QueryResult } from "mysql2";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -74,29 +75,34 @@ class SqlDataShifter extends utils.Adapter {
 
             this.scheduleJob.push(
                 schedule.scheduleJob(entry.schedule, async () => {
+                    this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
                     const table = entry.tableFrom;
 
                     await useConnection(async (connection) => {
                         const date = Date.now();
 
                         let selectQuery: string;
+
+                        let rows: QueryResult;
                         if (entry.delete) {
                             selectQuery = `SELECT *
                                            from ${table}
                                            WHERE id = ?
                                              AND ts <= ?`;
+                            [rows] = await connection.execute(selectQuery, [entry.id, date]);
                         } else {
                             selectQuery = `SELECT *
                                            from ${table}
                                            WHERE id = ?
                                              AND ts <= ?
                                              AND ts > ?`;
+                            [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
                         }
-                        const [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
                         entry.oldTimestamp = date;
-                        const result = rows as SqlNumberTable[];
+                        const result = rows as SqlIobrokerAdapterRow[];
 
                         if (result.length === 0) {
+                            this.log.debug(`No data found for ${entry.id}`);
                             return;
                         }
 
@@ -115,7 +121,12 @@ class SqlDataShifter extends utils.Adapter {
                             await saveData(entry, date, average);
                         }
 
+                        if (entry.operation === "all") {
+                            await saveDataArray(entry, result);
+                        }
+
                         if (entry.delete) {
+                            console.log("Deleting");
                             const deleteQuery = `DELETE
                                                  FROM ${table}
                                                  WHERE id = ?

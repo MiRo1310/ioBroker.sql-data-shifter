@@ -20,7 +20,7 @@ export interface TableItem {
     tableTo: string;
     delete: boolean;
     unit?: string
-    operation: "avg" | "sum" | "dif";
+    operation: "avg" | "sum" | "dif" | "all";
     factor: number;
     active: boolean;
 }

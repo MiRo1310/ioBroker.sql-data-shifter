@@ -14,7 +14,7 @@ declare global {
 }
 
 export interface TableItem {
-    schedule: string;
+    time: number; // Sekunden
     id: string;
     tableFrom: string;
     tableTo: string;

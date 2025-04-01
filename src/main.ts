@@ -73,70 +73,76 @@ class SqlDataShifter extends utils.Adapter {
             }
             await createNewTable(entry.tableTo);
 
-            this.scheduleJob.push(
-                schedule.scheduleJob(entry.schedule, async () => {
-                    this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
-                    const table = entry.tableFrom;
+            const timeInMilliseconds = entry.time * 1000;
 
-                    await useConnection(async (connection) => {
-                        const date = Date.now();
+            const job = schedule.scheduleJob(new Date(Date.now() + timeInMilliseconds), async () => {
+                this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
+                const table = entry.tableFrom;
 
-                        let selectQuery: string;
+                await useConnection(async (connection) => {
+                    const date = Date.now();
 
-                        let rows: QueryResult;
-                        if (entry.delete) {
-                            selectQuery = `SELECT *
-                                           from ${table}
-                                           WHERE id = ?
-                                             AND ts <= ?`;
-                            [rows] = await connection.execute(selectQuery, [entry.id, date]);
-                        } else {
-                            selectQuery = `SELECT *
-                                           from ${table}
-                                           WHERE id = ?
-                                             AND ts <= ?
-                                             AND ts > ?`;
-                            [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
-                        }
-                        entry.oldTimestamp = date;
-                        const result = rows as SqlIobrokerAdapterRow[];
+                    let selectQuery: string;
 
-                        if (result.length === 0) {
-                            this.log.debug(`No data found for ${entry.id}`);
-                            return;
-                        }
+                    let rows: QueryResult;
+                    if (entry.delete) {
+                        selectQuery = `SELECT *
+                                       from ${table}
+                                       WHERE id = ?
+                                         AND ts <= ?`;
+                        [rows] = await connection.execute(selectQuery, [entry.id, date]);
+                    } else {
+                        selectQuery = `SELECT *
+                                       from ${table}
+                                       WHERE id = ?
+                                         AND ts <= ?
+                                         AND ts > ?`;
+                        [rows] = await connection.execute(selectQuery, [
+                            entry.id,
+                            date,
+                            entry.oldTimestamp || date - timeInMilliseconds,
+                        ]);
+                    }
+                    entry.oldTimestamp = date;
+                    const result = rows as SqlIobrokerAdapterRow[];
 
-                        if (entry.operation === "sum") {
-                            const sum = sumResult(result) * entry.factor;
-                            await saveData(entry, date, sum);
-                        }
+                    if (result.length === 0) {
+                        this.log.debug(`No data found for ${entry.id}`);
+                        return;
+                    }
 
-                        if (entry.operation === "dif") {
-                            const sum = differenceResult(result) * entry.factor;
-                            await saveData(entry, date, sum);
-                        }
+                    if (entry.operation === "sum") {
+                        const sum = sumResult(result) * entry.factor;
+                        await saveData(entry, date, sum);
+                    }
 
-                        if (entry.operation === "avg") {
-                            const average = calculateAverage(result) * entry.factor;
-                            await saveData(entry, date, average);
-                        }
+                    if (entry.operation === "dif") {
+                        const sum = differenceResult(result) * entry.factor;
+                        await saveData(entry, date, sum);
+                    }
 
-                        if (entry.operation === "all") {
-                            await saveDataArray(entry, result);
-                        }
+                    if (entry.operation === "avg") {
+                        const average = calculateAverage(result) * entry.factor;
+                        await saveData(entry, date, average);
+                    }
 
-                        if (entry.delete) {
-                            console.log("Deleting");
-                            const deleteQuery = `DELETE
-                                                 FROM ${table}
-                                                 WHERE id = ?
-                                                   AND ts <= ?`;
+                    if (entry.operation === "all") {
+                        await saveDataArray(entry, result);
+                    }
 
-                            await connection.execute(deleteQuery, [entry.id, date]);
-                        }
-                    });
-                }),
-            );
+                    if (entry.delete) {
+                        console.log("Deleting");
+                        const deleteQuery = `DELETE
+                                             FROM ${table}
+                                             WHERE id = ?
+                                               AND ts <= ?`;
+
+                        await connection.execute(deleteQuery, [entry.id, date]);
+                    }
+                });
+                job.reschedule(new Date(Date.now() + timeInMilliseconds));
+            });
+            this.scheduleJob.push(job);
         }
 
         // Initialize your adapter here

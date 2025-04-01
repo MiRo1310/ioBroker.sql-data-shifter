@@ -94,23 +94,24 @@
           },
           "items": [
             {
-              "type": "cron",
+              "type": "number",
               "complex": true,
-              "width": "15%",
-              "validator": "data.schedule.length",
+              "width": "10%",
+              "min": 30,
+              "validator": "data.time >= 30",
               "validatorErrorText": {
-                "de": "Bitte geben Sie einen Zeitplan ein",
-                "en": "Please enter a schedule"
+                "de": "Bitte geben Sie einen Intervallbereich ein",
+                "en": "Please enter a interval range"
               },
               "validatorNoSaveOnError": true,
               "title": {
-                "en": "Schedule",
-                "de": "Zeitplan"
+                "en": "Time in seconds",
+                "de": "Zeit in Sekunden"
               },
-              "attr": "schedule",
+              "attr": "time",
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": 5
             },
             {
               "type": "text",

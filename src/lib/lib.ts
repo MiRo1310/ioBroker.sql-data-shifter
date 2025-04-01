@@ -1,4 +1,5 @@
 import type { SqlNumberTable } from "../types/types";
+import type { TableItem } from "./adapter-config";
 
 export function calculateAverage(rows: SqlNumberTable[]): number {
     let sum = 0;
@@ -23,3 +24,11 @@ export function differenceResult(rows: SqlNumberTable[]): number {
     }
     return lastRow.val - firstRow.val;
 }
+
+export const addParamsToTableItem = (table: TableItem[]): (TableItem & { oldTimestamp?: number })[] => {
+    const tableWithMoreParams: (TableItem & { oldTimestamp?: number })[] = table;
+
+    return tableWithMoreParams.map((item) => {
+        return { ...item, oldTimestamp: 0 };
+    });
+};

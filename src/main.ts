@@ -7,7 +7,7 @@
 import * as utils from "@iobroker/adapter-core";
 import type { DBConfig, SqlNumberTable } from "./types/types";
 import { setDBConfig, useConnection } from "./connection";
-import { calculateAverage, differenceResult, sumResult } from "./lib/lib";
+import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } from "./lib/lib";
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
@@ -64,11 +64,9 @@ class SqlDataShifter extends utils.Adapter {
             return;
         }
 
-        this.log.debug(JSON.stringify(this.config));
+        const tableObject = addParamsToTableItem(this.config.table);
 
-        let oldTimestamp = 0;
-
-        for (const entry of this.config.table) {
+        for (const entry of tableObject) {
             if (!entry.active) {
                 continue;
             }
@@ -94,8 +92,8 @@ class SqlDataShifter extends utils.Adapter {
                                              AND ts <= ?
                                              AND ts > ?`;
                         }
-                        const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
-                        oldTimestamp = date;
+                        const [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
+                        entry.oldTimestamp = date;
                         const result = rows as SqlNumberTable[];
 
                         if (result.length === 0) {
@@ -181,11 +179,6 @@ class SqlDataShifter extends utils.Adapter {
     private onUnload(callback: () => void): void {
         try {
             this.scheduleJob.forEach((job) => job.cancel());
-            // Here you must clear all timeouts or intervals that may still be active
-            // clearTimeout(timeout1);
-            // clearTimeout(timeout2);
-            // ...
-            // clearInterval(interval1);
 
             callback();
         } catch (e) {

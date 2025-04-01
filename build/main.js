@@ -67,9 +67,8 @@ class SqlDataShifter extends utils.Adapter {
     if (!isConnectionSuccessful) {
       return;
     }
-    this.log.debug(JSON.stringify(this.config));
-    let oldTimestamp = 0;
-    for (const entry of this.config.table) {
+    const tableObject = (0, import_lib.addParamsToTableItem)(this.config.table);
+    for (const entry of tableObject) {
       if (!entry.active) {
         continue;
       }
@@ -92,8 +91,8 @@ class SqlDataShifter extends utils.Adapter {
                                              AND ts <= ?
                                              AND ts > ?`;
             }
-            const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
-            oldTimestamp = date;
+            const [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
+            entry.oldTimestamp = date;
             const result = rows;
             if (result.length === 0) {
               return;

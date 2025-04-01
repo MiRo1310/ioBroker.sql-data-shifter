@@ -18,6 +18,7 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var lib_exports = {};
 __export(lib_exports, {
+  addParamsToTableItem: () => addParamsToTableItem,
   calculateAverage: () => calculateAverage,
   differenceResult: () => differenceResult,
   sumResult: () => sumResult
@@ -43,8 +44,15 @@ function differenceResult(rows) {
   }
   return lastRow.val - firstRow.val;
 }
+const addParamsToTableItem = (table) => {
+  const tableWithMoreParams = table;
+  return tableWithMoreParams.map((item) => {
+    return { ...item, oldTimestamp: 0 };
+  });
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  addParamsToTableItem,
   calculateAverage,
   differenceResult,
   sumResult

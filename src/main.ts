@@ -75,34 +75,35 @@ class SqlDataShifter extends utils.Adapter {
 
             const timeInMilliseconds = entry.time * 1000;
 
-            const job = schedule.scheduleJob(new Date(Date.now() + timeInMilliseconds), async () => {
+            const job = schedule.scheduleJob(entry.schedule, async () => {
                 this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
                 const table = entry.tableFrom;
 
                 await useConnection(async (connection) => {
                     const date = Date.now();
 
-                    let selectQuery: string;
+                    // let selectQuery: string;
 
-                    let rows: QueryResult;
-                    if (entry.delete) {
-                        selectQuery = `SELECT *
-                                       from ${table}
-                                       WHERE id = ?
-                                         AND ts <= ?`;
-                        [rows] = await connection.execute(selectQuery, [entry.id, date]);
-                    } else {
-                        selectQuery = `SELECT *
-                                       from ${table}
-                                       WHERE id = ?
-                                         AND ts <= ?
-                                         AND ts > ?`;
-                        [rows] = await connection.execute(selectQuery, [
-                            entry.id,
-                            date,
-                            entry.oldTimestamp || date - timeInMilliseconds,
-                        ]);
-                    }
+                    // let rows: QueryResult;
+                    // if (entry.delete) {
+                    //     selectQuery = `SELECT *
+                    //                    from ${table}
+                    //                    WHERE id = ?
+                    //                      AND ts <= ?`;
+                    //     [rows] = await connection.execute(selectQuery, [entry.id, date]);
+                    // } else {
+                    const selectQuery = `SELECT *
+                                         from ${table}
+                                         WHERE id = ?
+                                           AND ts <= ?
+                                           AND ts > ?`;
+
+                    const [rows] = await connection.execute(selectQuery, [
+                        entry.id,
+                        date,
+                        entry.oldTimestamp || date - timeInMilliseconds,
+                    ]);
+                    // }
                     entry.oldTimestamp = date;
                     const result = rows as SqlIobrokerAdapterRow[];
 
@@ -140,7 +141,6 @@ class SqlDataShifter extends utils.Adapter {
                         await connection.execute(deleteQuery, [entry.id, date]);
                     }
                 });
-                job.reschedule(new Date(Date.now() + timeInMilliseconds));
             });
             this.scheduleJob.push(job);
         }

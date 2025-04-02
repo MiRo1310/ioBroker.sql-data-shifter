@@ -15,6 +15,7 @@ declare global {
 
 export interface TableItem {
     time: number; // Sekunden
+    schedule: string;
     id: string;
     tableFrom: string;
     tableTo: string;

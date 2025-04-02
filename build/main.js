@@ -74,27 +74,21 @@ class SqlDataShifter extends utils.Adapter {
       }
       await (0, import_querys.createNewTable)(entry.tableTo);
       const timeInMilliseconds = entry.time * 1e3;
-      const job = import_node_schedule.default.scheduleJob(new Date(Date.now() + timeInMilliseconds), async () => {
+      const job = import_node_schedule.default.scheduleJob(entry.schedule, async () => {
         this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
         const table = entry.tableFrom;
         await (0, import_connection.useConnection)(async (connection) => {
           const date = Date.now();
-          let selectQuery;
-          let rows;
-          if (entry.delete) {
-            selectQuery = `SELECT *
-                                       from ${table}
-                                       WHERE id = ?
-                                         AND ts <= ?`;
-            [rows] = await connection.execute(selectQuery, [entry.id, date]);
-          } else {
-            selectQuery = `SELECT *
-                                       from ${table}
-                                       WHERE id = ?
-                                         AND ts <= ?
-                                         AND ts > ?`;
-            [rows] = await connection.execute(selectQuery, [entry.id, date, entry.oldTimestamp]);
-          }
+          const selectQuery = `SELECT *
+                                         from ${table}
+                                         WHERE id = ?
+                                           AND ts <= ?
+                                           AND ts > ?`;
+          const [rows] = await connection.execute(selectQuery, [
+            entry.id,
+            date,
+            entry.oldTimestamp || date - timeInMilliseconds
+          ]);
           entry.oldTimestamp = date;
           const result = rows;
           if (result.length === 0) {
@@ -125,7 +119,6 @@ class SqlDataShifter extends utils.Adapter {
             await connection.execute(deleteQuery, [entry.id, date]);
           }
         });
-        job.reschedule(new Date(Date.now() + timeInMilliseconds));
       });
       this.scheduleJob.push(job);
     }

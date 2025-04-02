@@ -42,6 +42,9 @@ export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterR
                            VALUES (?, ?, ?, ?)`;
 
         for (const row of table) {
+            if (row.val === 0 && !entry.writeZero) {
+                continue;
+            }
             await connection.execute(saveQuery, [entry.id, row.ts, row.val, entry.unit ?? ""]);
         }
     });

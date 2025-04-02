@@ -92,19 +92,31 @@ class SqlDataShifter extends utils.Adapter {
           entry.oldTimestamp = date;
           const result = rows;
           if (result.length === 0) {
+            if (entry.writeZero) {
+              await (0, import_querys.saveData)(entry, date, 0);
+            }
             this.log.debug(`No data found for ${entry.id}`);
             return;
           }
           if (entry.operation === "sum") {
             const sum = (0, import_lib.sumResult)(result) * entry.factor;
+            if (sum === 0 && !entry.writeZero) {
+              return;
+            }
             await (0, import_querys.saveData)(entry, date, sum);
           }
           if (entry.operation === "dif") {
             const sum = (0, import_lib.differenceResult)(result) * entry.factor;
+            if (sum === 0 && !entry.writeZero) {
+              return;
+            }
             await (0, import_querys.saveData)(entry, date, sum);
           }
           if (entry.operation === "avg") {
             const average = (0, import_lib.calculateAverage)(result) * entry.factor;
+            if (average === 0 && !entry.writeZero) {
+              return;
+            }
             await (0, import_querys.saveData)(entry, date, average);
           }
           if (entry.operation === "all") {

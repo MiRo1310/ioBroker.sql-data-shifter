@@ -62,6 +62,9 @@ const saveDataArray = async (entry, table) => {
     const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
     for (const row of table) {
+      if (row.val === 0 && !entry.writeZero) {
+        continue;
+      }
       await connection.execute(saveQuery, [entry.id, row.ts, row.val, (_a = entry.unit) != null ? _a : ""]);
     }
   });

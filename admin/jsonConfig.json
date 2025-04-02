@@ -320,6 +320,21 @@
             {
               "type": "checkbox",
               "title": {
+                "en": "Write Zero",
+                "de": "Schreibe Null-Werte"
+              },
+              "attr": "ariteZero",
+              "filter": false,
+              "sort": true,
+              "default": true,
+              "tooltip": {
+                "en": "Write zero values",
+                "de": "Schreibe Null-Werte"
+              }
+            },
+            {
+              "type": "checkbox",
+              "title": {
                 "en": "Active",
                 "de": "Aktiv"
               },

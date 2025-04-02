@@ -24,6 +24,7 @@ export interface TableItem {
     operation: "avg" | "sum" | "dif" | "all";
     factor: number;
     active: boolean;
+    writeZero: boolean;
 }
 
 // this is required so the above AdapterConfig is found by TypeScript / type checking

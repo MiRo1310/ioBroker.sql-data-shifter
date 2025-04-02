@@ -12,7 +12,6 @@ import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
 import { createNewTable, saveData, saveDataArray } from "./lib/querys";
-import type { QueryResult } from "mysql2";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -106,24 +105,36 @@ class SqlDataShifter extends utils.Adapter {
                     // }
                     entry.oldTimestamp = date;
                     const result = rows as SqlIobrokerAdapterRow[];
-
+                    //TODO- Runden
                     if (result.length === 0) {
+                        if (entry.writeZero) {
+                            await saveData(entry, date, 0);
+                        }
                         this.log.debug(`No data found for ${entry.id}`);
                         return;
                     }
 
                     if (entry.operation === "sum") {
                         const sum = sumResult(result) * entry.factor;
+                        if (sum === 0 && !entry.writeZero) {
+                            return;
+                        }
                         await saveData(entry, date, sum);
                     }
 
                     if (entry.operation === "dif") {
                         const sum = differenceResult(result) * entry.factor;
+                        if (sum === 0 && !entry.writeZero) {
+                            return;
+                        }
                         await saveData(entry, date, sum);
                     }
 
                     if (entry.operation === "avg") {
                         const average = calculateAverage(result) * entry.factor;
+                        if (average === 0 && !entry.writeZero) {
+                            return;
+                        }
                         await saveData(entry, date, average);
                     }
 
@@ -132,6 +143,7 @@ class SqlDataShifter extends utils.Adapter {
                     }
 
                     if (entry.delete) {
+                        //TODO - Remove console.log
                         console.log("Deleting");
                         const deleteQuery = `DELETE
                                              FROM ${table}

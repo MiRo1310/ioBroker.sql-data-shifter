@@ -19,7 +19,8 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var querys_exports = {};
 __export(querys_exports, {
   createNewTable: () => createNewTable,
-  saveData: () => saveData
+  saveData: () => saveData,
+  saveDataArray: () => saveDataArray
 });
 module.exports = __toCommonJS(querys_exports);
 var import_connection = require("../connection");
@@ -55,9 +56,23 @@ const saveData = async (entry, date, val) => {
     await connection.execute(saveQuery, [entry.id, date, val, (_a = entry.unit) != null ? _a : ""]);
   });
 };
+const saveDataArray = async (entry, table) => {
+  return (0, import_connection.useConnection)(async (connection) => {
+    var _a;
+    const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
+                           VALUES (?, ?, ?, ?)`;
+    for (const row of table) {
+      if (row.val === 0 && !entry.writeZero) {
+        continue;
+      }
+      await connection.execute(saveQuery, [entry.id, row.ts, row.val, (_a = entry.unit) != null ? _a : ""]);
+    }
+  });
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   createNewTable,
-  saveData
+  saveData,
+  saveDataArray
 });
 //# sourceMappingURL=querys.js.map

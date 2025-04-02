@@ -67,59 +67,72 @@ class SqlDataShifter extends utils.Adapter {
     if (!isConnectionSuccessful) {
       return;
     }
-    this.log.debug(JSON.stringify(this.config));
-    let oldTimestamp = 0;
-    for (const entry of this.config.table) {
+    const tableObject = (0, import_lib.addParamsToTableItem)(this.config.table);
+    for (const entry of tableObject) {
       if (!entry.active) {
         continue;
       }
       await (0, import_querys.createNewTable)(entry.tableTo);
-      this.scheduleJob.push(
-        import_node_schedule.default.scheduleJob(entry.schedule, async () => {
-          const table = entry.tableFrom;
-          await (0, import_connection.useConnection)(async (connection) => {
-            const date = Date.now();
-            let selectQuery;
-            if (entry.delete) {
-              selectQuery = `SELECT *
-                                           from ${table}
-                                           WHERE id = ?
-                                             AND ts <= ?`;
-            } else {
-              selectQuery = `SELECT *
-                                           from ${table}
-                                           WHERE id = ?
-                                             AND ts <= ?
-                                             AND ts > ?`;
+      const timeInMilliseconds = entry.time * 1e3;
+      const job = import_node_schedule.default.scheduleJob(entry.schedule, async () => {
+        this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
+        const table = entry.tableFrom;
+        await (0, import_connection.useConnection)(async (connection) => {
+          const date = Date.now();
+          const selectQuery = `SELECT *
+                                         from ${table}
+                                         WHERE id = ?
+                                           AND ts <= ?
+                                           AND ts > ?`;
+          const [rows] = await connection.execute(selectQuery, [
+            entry.id,
+            date,
+            entry.oldTimestamp || date - timeInMilliseconds
+          ]);
+          entry.oldTimestamp = date;
+          const result = rows;
+          if (result.length === 0) {
+            if (entry.writeZero) {
+              await (0, import_querys.saveData)(entry, date, 0);
             }
-            const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
-            oldTimestamp = date;
-            const result = rows;
-            if (result.length === 0) {
+            this.log.debug(`No data found for ${entry.id}`);
+            return;
+          }
+          if (entry.operation === "sum") {
+            const sum = (0, import_lib.sumResult)(result) * entry.factor;
+            if (sum === 0 && !entry.writeZero) {
               return;
             }
-            if (entry.operation === "sum") {
-              const sum = (0, import_lib.sumResult)(result) * entry.factor;
-              await (0, import_querys.saveData)(entry, date, sum);
+            await (0, import_querys.saveData)(entry, date, sum);
+          }
+          if (entry.operation === "dif") {
+            const sum = (0, import_lib.differenceResult)(result) * entry.factor;
+            if (sum === 0 && !entry.writeZero) {
+              return;
             }
-            if (entry.operation === "dif") {
-              const sum = (0, import_lib.differenceResult)(result) * entry.factor;
-              await (0, import_querys.saveData)(entry, date, sum);
+            await (0, import_querys.saveData)(entry, date, sum);
+          }
+          if (entry.operation === "avg") {
+            const average = (0, import_lib.calculateAverage)(result) * entry.factor;
+            if (average === 0 && !entry.writeZero) {
+              return;
             }
-            if (entry.operation === "avg") {
-              const average = (0, import_lib.calculateAverage)(result) * entry.factor;
-              await (0, import_querys.saveData)(entry, date, average);
-            }
-            if (entry.delete) {
-              const deleteQuery = `DELETE
-                                                 FROM ${table}
-                                                 WHERE id = ?
-                                                   AND ts <= ?`;
-              await connection.execute(deleteQuery, [entry.id, date]);
-            }
-          });
-        })
-      );
+            await (0, import_querys.saveData)(entry, date, average);
+          }
+          if (entry.operation === "all") {
+            await (0, import_querys.saveDataArray)(entry, result);
+          }
+          if (entry.delete) {
+            console.log("Deleting");
+            const deleteQuery = `DELETE
+                                             FROM ${table}
+                                             WHERE id = ?
+                                               AND ts <= ?`;
+            await connection.execute(deleteQuery, [entry.id, date]);
+          }
+        });
+      });
+      this.scheduleJob.push(job);
     }
   }
   /**

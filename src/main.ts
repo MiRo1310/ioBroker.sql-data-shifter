@@ -5,13 +5,13 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
-import type { DBConfig, SqlNumberTable } from "./types/types";
+import type { DBConfig, SqlIobrokerAdapterRow } from "./types/types";
 import { setDBConfig, useConnection } from "./connection";
-import { calculateAverage, differenceResult, sumResult } from "./lib/lib";
+import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } from "./lib/lib";
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
-import { createNewTable, saveData } from "./lib/querys";
+import { createNewTable, saveData, saveDataArray } from "./lib/querys";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -64,70 +64,97 @@ class SqlDataShifter extends utils.Adapter {
             return;
         }
 
-        this.log.debug(JSON.stringify(this.config));
+        const tableObject = addParamsToTableItem(this.config.table);
 
-        let oldTimestamp = 0;
-
-        for (const entry of this.config.table) {
+        for (const entry of tableObject) {
             if (!entry.active) {
                 continue;
             }
             await createNewTable(entry.tableTo);
 
-            this.scheduleJob.push(
-                schedule.scheduleJob(entry.schedule, async () => {
-                    const table = entry.tableFrom;
+            const timeInMilliseconds = entry.time * 1000;
 
-                    await useConnection(async (connection) => {
-                        const date = Date.now();
+            const job = schedule.scheduleJob(entry.schedule, async () => {
+                this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
+                const table = entry.tableFrom;
 
-                        let selectQuery: string;
-                        if (entry.delete) {
-                            selectQuery = `SELECT *
-                                           from ${table}
-                                           WHERE id = ?
-                                             AND ts <= ?`;
-                        } else {
-                            selectQuery = `SELECT *
-                                           from ${table}
-                                           WHERE id = ?
-                                             AND ts <= ?
-                                             AND ts > ?`;
+                await useConnection(async (connection) => {
+                    const date = Date.now();
+
+                    // let selectQuery: string;
+
+                    // let rows: QueryResult;
+                    // if (entry.delete) {
+                    //     selectQuery = `SELECT *
+                    //                    from ${table}
+                    //                    WHERE id = ?
+                    //                      AND ts <= ?`;
+                    //     [rows] = await connection.execute(selectQuery, [entry.id, date]);
+                    // } else {
+                    const selectQuery = `SELECT *
+                                         from ${table}
+                                         WHERE id = ?
+                                           AND ts <= ?
+                                           AND ts > ?`;
+
+                    const [rows] = await connection.execute(selectQuery, [
+                        entry.id,
+                        date,
+                        entry.oldTimestamp || date - timeInMilliseconds,
+                    ]);
+                    // }
+                    entry.oldTimestamp = date;
+                    const result = rows as SqlIobrokerAdapterRow[];
+                    //TODO- Runden
+                    if (result.length === 0) {
+                        if (entry.writeZero) {
+                            await saveData(entry, date, 0);
                         }
-                        const [rows] = await connection.execute(selectQuery, [entry.id, date, oldTimestamp]);
-                        oldTimestamp = date;
-                        const result = rows as SqlNumberTable[];
+                        this.log.debug(`No data found for ${entry.id}`);
+                        return;
+                    }
 
-                        if (result.length === 0) {
+                    if (entry.operation === "sum") {
+                        const sum = sumResult(result) * entry.factor;
+                        if (sum === 0 && !entry.writeZero) {
                             return;
                         }
+                        await saveData(entry, date, sum);
+                    }
 
-                        if (entry.operation === "sum") {
-                            const sum = sumResult(result) * entry.factor;
-                            await saveData(entry, date, sum);
+                    if (entry.operation === "dif") {
+                        const sum = differenceResult(result) * entry.factor;
+                        if (sum === 0 && !entry.writeZero) {
+                            return;
                         }
+                        await saveData(entry, date, sum);
+                    }
 
-                        if (entry.operation === "dif") {
-                            const sum = differenceResult(result) * entry.factor;
-                            await saveData(entry, date, sum);
+                    if (entry.operation === "avg") {
+                        const average = calculateAverage(result) * entry.factor;
+                        if (average === 0 && !entry.writeZero) {
+                            return;
                         }
+                        await saveData(entry, date, average);
+                    }
 
-                        if (entry.operation === "avg") {
-                            const average = calculateAverage(result) * entry.factor;
-                            await saveData(entry, date, average);
-                        }
+                    if (entry.operation === "all") {
+                        await saveDataArray(entry, result);
+                    }
 
-                        if (entry.delete) {
-                            const deleteQuery = `DELETE
-                                                 FROM ${table}
-                                                 WHERE id = ?
-                                                   AND ts <= ?`;
+                    if (entry.delete) {
+                        //TODO - Remove console.log
+                        console.log("Deleting");
+                        const deleteQuery = `DELETE
+                                             FROM ${table}
+                                             WHERE id = ?
+                                               AND ts <= ?`;
 
-                            await connection.execute(deleteQuery, [entry.id, date]);
-                        }
-                    });
-                }),
-            );
+                        await connection.execute(deleteQuery, [entry.id, date]);
+                    }
+                });
+            });
+            this.scheduleJob.push(job);
         }
 
         // Initialize your adapter here
@@ -181,11 +208,6 @@ class SqlDataShifter extends utils.Adapter {
     private onUnload(callback: () => void): void {
         try {
             this.scheduleJob.forEach((job) => job.cancel());
-            // Here you must clear all timeouts or intervals that may still be active
-            // clearTimeout(timeout1);
-            // clearTimeout(timeout2);
-            // ...
-            // clearInterval(interval1);
 
             callback();
         } catch (e) {

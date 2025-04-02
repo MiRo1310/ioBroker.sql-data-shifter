@@ -24,6 +24,10 @@
             "de": "IP-Adresse",
             "en": "IP Address"
           },
+          "tooltip": {
+            "en": "IP address of the database server",
+            "de": "IP-Adresse des Datenbankservers"
+          },
           "newLine": true
         },
         "user": {
@@ -35,6 +39,10 @@
           "validatorErrorText": {
             "de": "Bitte geben Sie einen Benutzernamen ein",
             "en": "Please enter a username"
+          },
+          "tooltip": {
+            "en": "Username for accessing the database",
+            "de": "Benutzername für den Zugriff auf die Datenbank"
           },
           "validatorNoSaveOnError": true,
           "label": {
@@ -58,6 +66,10 @@
             "de": "Passwort",
             "en": "Password"
           },
+          "tooltip": {
+            "de": "Passwort für den Zugriff auf die Datenbank",
+            "en": "Password for accessing the database"
+          },
           "newLine": false
         },
         "database": {
@@ -74,6 +86,10 @@
           "label": {
             "de": "Datenbank",
             "en": "Database"
+          },
+          "tooltip": {
+            "en": "Name of the database",
+            "de": "Name der Datenbank"
           },
           "newLine": true
         }
@@ -96,25 +112,52 @@
             {
               "type": "cron",
               "complex": true,
-              "width": "15%",
+              "width": "10%",
+              "min": 30,
               "validator": "data.schedule.length",
               "validatorErrorText": {
-                "de": "Bitte geben Sie einen Zeitplan ein",
-                "en": "Please enter a schedule"
+                "de": "Bitte legen Sie einen Zeitplan ein",
+                "en": "Please set a schedule"
               },
               "validatorNoSaveOnError": true,
               "title": {
                 "en": "Schedule",
                 "de": "Zeitplan"
               },
+              "tooltip": {
+                "en": "Cron expression for the schedule",
+                "de": "Cron-Ausdruck für den Zeitplan"
+              },
               "attr": "schedule",
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": 5
+            },
+            {
+              "type": "number",
+              "min": 30,
+              "validator": "data.time >= 30",
+              "validatorErrorText": {
+                "de": "Bitte geben Sie einen Intervallbereich ein",
+                "en": "Please enter a interval range"
+              },
+              "validatorNoSaveOnError": true,
+              "title": {
+                "en": "Time in seconds",
+                "de": "Zeit in Sekunden"
+              },
+              "tooltip": {
+                "en": "Interval in seconds",
+                "de": "Intervall in Sekunden"
+              },
+              "attr": "time",
+              "filter": false,
+              "sort": true,
+              "default": 5
             },
             {
               "type": "text",
-              "width": "10%",
+              "width": "90px",
               "title": {
                 "en": "ID",
                 "de": "ID"
@@ -128,11 +171,15 @@
               "validatorNoSaveOnError": true,
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": "",
+              "tooltip": {
+                "en": "ID of the datapoint in the database",
+                "de": "ID des Datenpunktes in der Datenbank"
+              }
             },
             {
               "type": "text",
-              "width": "20%",
+              "width": "300px",
               "validator": "data.tableFrom.length",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine Quelltabelle ein",
@@ -146,11 +193,15 @@
               "attr": "tableFrom",
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": "",
+              "tooltip": {
+                "en": "Source table in the database",
+                "de": "Quelltabelle in der Datenbank"
+              }
             },
             {
               "type": "text",
-              "width": "20%",
+              "width": "300px",
               "validator": "data.tableTo.length",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine Zieltabelle ein",
@@ -164,11 +215,15 @@
               "attr": "tableTo",
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": "",
+              "tooltip": {
+                "en": "Target table in the database",
+                "de": "Zieltabelle in der Datenbank"
+              }
             },
             {
               "type": "text",
-              "width": "20%",
+              "width": "100px",
               "title": {
                 "en": "Unit",
                 "de": "Einheit"
@@ -187,14 +242,20 @@
               "attr": "factor",
               "filter": false,
               "sort": true,
-              "default": 1
+              "default": 1,
+              "validator": "data.factor > 0",
+              "validatorErrorText": {
+                "de": "Bitte geben Sie einen Faktor ein",
+                "en": "Please enter a factor"
+              },
+              "validatorNoSaveOnError": true,
+              "tooltip": {
+                "en": "Factor for the calculation",
+                "de": "Faktor für die Berechnung"
+              }
             },
             {
               "type": "select",
-              "label": {
-                "en": "Please select",
-                "de": "Bitte auswählen"
-              },
               "title": {
                 "en": "Operation",
                 "de": "Operation"
@@ -206,6 +267,10 @@
               },
               "validatorNoSaveOnError": true,
               "attr": "operation",
+              "tooltip": {
+                "en": "Operation for the calculation",
+                "de": "Operation für die Berechnung"
+              },
               "options": [
                 {
                   "value": "dif",
@@ -227,6 +292,13 @@
                     "en": "Sum",
                     "de": "Summe"
                   }
+                },
+                {
+                  "value": "all",
+                  "label": {
+                    "en": "All",
+                    "de": "Alles"
+                  }
                 }
               ]
             },
@@ -239,7 +311,26 @@
               "attr": "delete",
               "filter": false,
               "sort": true,
-              "default": ""
+              "default": false,
+              "tooltip": {
+                "en": "Delete the old data",
+                "de": "Alte Daten löschen"
+              }
+            },
+            {
+              "type": "checkbox",
+              "title": {
+                "en": "Write Zero",
+                "de": "Schreibe Null-Werte"
+              },
+              "attr": "ariteZero",
+              "filter": false,
+              "sort": true,
+              "default": true,
+              "tooltip": {
+                "en": "Write zero values",
+                "de": "Schreibe Null-Werte"
+              }
             },
             {
               "type": "checkbox",
@@ -250,7 +341,11 @@
               "attr": "active",
               "filter": false,
               "sort": true,
-              "default": true
+              "default": true,
+              "tooltip": {
+                "en": "Activate the schedule",
+                "de": "Aktiviere den Zeitplan"
+              }
             }
           ]
         }

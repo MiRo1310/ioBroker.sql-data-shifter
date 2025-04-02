@@ -5,7 +5,7 @@ export interface DBConfig {
     database: string;
 }
 
-export interface SqlNumberTable {
+export interface SqlIobrokerAdapterRow {
     id: number;
     ts: number;
     val: number;

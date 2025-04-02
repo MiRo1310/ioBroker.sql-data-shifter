@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../../src/types/types.ts"],
-  "sourcesContent": ["export interface DBConfig {\n    host: string;\n    user: string;\n    password: string;\n    database: string;\n}\n\nexport type SqlTables = IobrokerSQLAdapterTables | CustomTables;\ntype IobrokerSQLAdapterTables = \"ts_string\" | \"ts_number\" | \"ts_counter\" | \"ts_bool\" | \"sources\" | \"datapoints\";\ntype CustomTables = \"IobrokerPvPowerBig_5min\" | \"IobrokerPvPowerSmall_5min\";\n\nexport interface SqlNumberTable {\n    id: number;\n    ts: number;\n    val: number;\n    ack: number;\n    _from: number;\n    q: number;\n}\n\nexport interface Ids {\n    id: number;\n    table: SqlTables;\n}\n"],
+  "sourcesContent": ["export interface DBConfig {\n    host: string;\n    user: string;\n    password: string;\n    database: string;\n}\n\nexport interface SqlIobrokerAdapterRow {\n    id: number;\n    ts: number;\n    val: number;\n    ack: number;\n    _from: number;\n    q: number;\n}\n"],
   "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
   "names": []
 }

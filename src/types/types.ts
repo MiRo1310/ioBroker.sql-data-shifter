@@ -8,8 +8,14 @@ export interface DBConfig {
 export interface SqlIobrokerAdapterRow {
     id: number;
     ts: number;
-    val: number;
+    val: number | null | string;
     ack: number;
     _from: number;
     q: number;
+}
+
+export interface DatapointsTable {
+    id: number;
+    name: string;
+    type: number;
 }

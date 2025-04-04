@@ -1,5 +1,5 @@
 import { useConnection } from "../connection";
-import type { TableItem } from "./adapter-config";
+import type { TableItem } from "../lib/adapter-config";
 import type { SqlIobrokerAdapterRow } from "../types/types";
 
 export async function createNewTable(table: string): Promise<void> {
@@ -31,7 +31,9 @@ export const saveData = async (entry: TableItem, date: number, val: number): Pro
     return useConnection(async (connection) => {
         const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
-
+        if (val === null) {
+            return;
+        }
         await connection.execute(saveQuery, [entry.id, date, val, entry.unit ?? ""]);
     });
 };
@@ -42,6 +44,9 @@ export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterR
                            VALUES (?, ?, ?, ?)`;
 
         for (const row of table) {
+            if (row.val === null) {
+                continue;
+            }
             if (row.val === 0 && !entry.writeZero) {
                 continue;
             }

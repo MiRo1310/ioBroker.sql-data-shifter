@@ -4,14 +4,14 @@ import type { TableItem } from "./adapter-config";
 export function calculateAverage(rows: SqlIobrokerAdapterRow[]): number {
     let sum = 0;
     rows.forEach((row) => {
-        sum += row.val;
+        sum += Number(row.val);
     });
     return sum / rows.length;
 }
 
 export function sumResult(rows: SqlIobrokerAdapterRow[]): number {
     return rows.reduce((acc, row) => {
-        return acc + row.val;
+        return acc + Number(row.val);
     }, 0);
 }
 
@@ -22,7 +22,7 @@ export function differenceResult(rows: SqlIobrokerAdapterRow[]): number {
     if (!firstRow?.val || !lastRow?.val) {
         return 0;
     }
-    return lastRow.val - firstRow.val;
+    return Number(lastRow.val) - Number(firstRow.val);
 }
 
 export const addParamsToTableItem = (table: TableItem[]): (TableItem & { oldTimestamp?: number })[] => {

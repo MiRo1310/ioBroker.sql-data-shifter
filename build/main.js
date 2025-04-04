@@ -25,7 +25,7 @@ var utils = __toESM(require("@iobroker/adapter-core"));
 var import_connection = require("./connection");
 var import_lib = require("./lib/lib");
 var import_node_schedule = __toESM(require("node-schedule"));
-var import_querys = require("./lib/querys");
+var import_querys = require("./app/querys");
 class SqlDataShifter extends utils.Adapter {
   scheduleJob;
   constructor(options = {}) {
@@ -35,13 +35,13 @@ class SqlDataShifter extends utils.Adapter {
     });
     this.scheduleJob = [];
     this.on("ready", this.onReady.bind(this));
+    this.on("message", this.onMessage.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
    * Is called when databases are connected and adapter received configuration.
    */
   async onReady() {
-    console.log("SqlDataShifter ready");
     const dbConfig = {};
     if (!this.config.user || !this.config.password || !this.config.database) {
       return;
@@ -79,6 +79,8 @@ class SqlDataShifter extends utils.Adapter {
         const table = entry.tableFrom;
         await (0, import_connection.useConnection)(async (connection) => {
           const date = Date.now();
+          console.log("id ", entry.id);
+          console.log("table", table);
           const selectQuery = `SELECT *
                                          from ${table}
                                          WHERE id = ?
@@ -89,9 +91,14 @@ class SqlDataShifter extends utils.Adapter {
             date,
             entry.oldTimestamp || date - timeInMilliseconds
           ]);
+          console.log(entry.oldTimestamp || date - timeInMilliseconds);
+          console.log(date, date - timeInMilliseconds);
+          console.log(entry.oldTimestamp);
+          console.log("rows", rows);
           entry.oldTimestamp = date;
           const result = rows;
           if (result.length === 0) {
+            console.log("Write zero ", entry.writeZero);
             if (entry.writeZero) {
               await (0, import_querys.saveData)(entry, date, 0);
             }
@@ -123,7 +130,6 @@ class SqlDataShifter extends utils.Adapter {
             await (0, import_querys.saveDataArray)(entry, result);
           }
           if (entry.delete) {
-            console.log("Deleting");
             const deleteQuery = `DELETE
                                              FROM ${table}
                                              WHERE id = ?
@@ -183,16 +189,20 @@ class SqlDataShifter extends utils.Adapter {
   //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
-  // private onMessage(obj: ioBroker.Message): void {
-  //     if (typeof obj === "object" && obj.message) {
-  //         if (obj.command === "send") {
-  //             // e.g. send email or pushover or whatever
-  //             this.log.info("send command");
-  //             // Send response in callback if required
-  //             if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-  //         }
-  //     }
-  // }
+  onMessage(obj) {
+    this.log.error("getIds");
+    this.log.error(JSON.stringify(obj));
+    switch (obj.command) {
+      case "id": {
+        const result = [
+          { label: "test", value: 1 },
+          { label: "test2", value: 2 }
+        ];
+        obj.callback && this.sendTo(obj.from, obj.command, result, obj.callback);
+        break;
+      }
+    }
+  }
 }
 if (require.main !== module) {
   module.exports = (options) => new SqlDataShifter(options);

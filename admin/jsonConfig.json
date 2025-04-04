@@ -9,6 +9,19 @@
         "en": "Configuration"
       },
       "items": {
+        "test": {
+          "type": "selectSendTo",
+          "attr": "device",
+          "label": {
+            "en": "Device",
+            "de": "Gerät"
+          },
+          "command": "id",
+          "data": {
+            "label": 1,
+            "value": "static"
+          }
+        },
         "ip": {
           "type": "text",
           "lg": 2,
@@ -131,7 +144,7 @@
               "attr": "schedule",
               "filter": false,
               "sort": true,
-              "default": 5
+              "default": ""
             },
             {
               "type": "number",
@@ -153,7 +166,21 @@
               "attr": "time",
               "filter": false,
               "sort": true,
-              "default": 5
+              "default": 60
+            },
+            {
+              "type": "selectSendTo",
+              "attr": "device",
+              "manual": true,
+              "label": {
+                "en": "Device",
+                "de": "Gerät"
+              },
+              "command": "id",
+              "data": {
+                "subject1": 1,
+                "data": "static"
+              }
             },
             {
               "type": "text",
@@ -323,7 +350,7 @@
                 "en": "Write Zero",
                 "de": "Schreibe Null-Werte"
               },
-              "attr": "ariteZero",
+              "attr": "writeZero",
               "filter": false,
               "sort": true,
               "default": true,

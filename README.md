@@ -1,4 +1,4 @@
-![Logo](admin/sql-data-shifter.png)
+![Logo](admin/old.png)
 
 # ioBroker.sql-data-shifter
 

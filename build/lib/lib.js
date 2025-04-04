@@ -27,13 +27,13 @@ module.exports = __toCommonJS(lib_exports);
 function calculateAverage(rows) {
   let sum = 0;
   rows.forEach((row) => {
-    sum += row.val;
+    sum += Number(row.val);
   });
   return sum / rows.length;
 }
 function sumResult(rows) {
   return rows.reduce((acc, row) => {
-    return acc + row.val;
+    return acc + Number(row.val);
   }, 0);
 }
 function differenceResult(rows) {
@@ -42,7 +42,7 @@ function differenceResult(rows) {
   if (!(firstRow == null ? void 0 : firstRow.val) || !(lastRow == null ? void 0 : lastRow.val)) {
     return 0;
   }
-  return lastRow.val - firstRow.val;
+  return Number(lastRow.val) - Number(firstRow.val);
 }
 const addParamsToTableItem = (table) => {
   const tableWithMoreParams = table;

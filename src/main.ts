@@ -11,7 +11,8 @@ import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } f
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
-import { createNewTable, saveData, saveDataArray } from "./app/querys";
+import { createNewTable, getAllTables, saveData, saveDataArray } from "./app/querys";
+import { getDatapointsTable } from "./app/getTablesForFrontendUsage";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -256,18 +257,25 @@ class SqlDataShifter extends utils.Adapter {
     //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
     //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
     //  */
-    private onMessage(obj: ioBroker.Message): void {
-        this.log.error("getIds");
-        this.log.error(JSON.stringify(obj));
+    private async onMessage(obj: ioBroker.Message): Promise<void> {
         switch (obj.command) {
             case "id": {
-                const result = [
-                    { label: "test", value: 1 },
-                    { label: "test2", value: 2 },
-                ];
+                const result = await getDatapointsTable();
+                const options = result.map((item) => ({
+                    label: `${item.id} | ${item.name}`,
+                    value: item.id,
+                }));
 
-                obj.callback && this.sendTo(obj.from, obj.command, result, obj.callback);
+                obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
                 break;
+            }
+            case "tableFrom": {
+                const tables = await getAllTables();
+                const options = tables.map((item) => ({
+                    label: item,
+                    value: item,
+                }));
+                obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
             }
         }
     }

@@ -9,19 +9,6 @@
         "en": "Configuration"
       },
       "items": {
-        "test": {
-          "type": "selectSendTo",
-          "attr": "device",
-          "label": {
-            "en": "Device",
-            "de": "Gerät"
-          },
-          "command": "id",
-          "data": {
-            "label": 1,
-            "value": "static"
-          }
-        },
         "ip": {
           "type": "text",
           "lg": 2,
@@ -170,44 +157,32 @@
             },
             {
               "type": "selectSendTo",
-              "attr": "device",
-              "manual": true,
-              "label": {
-                "en": "Device",
-                "de": "Gerät"
+              "attr": "id",
+              "width": "250px",
+              "title": {
+                "en": "ID",
+                "de": "ID"
+              },
+              "tooltip": {
+                "en": "ID of the datapoint in the database",
+                "de": "ID des Datenpunktes in der Datenbank"
               },
               "command": "id",
               "data": {
                 "subject1": 1,
                 "data": "static"
-              }
-            },
-            {
-              "type": "text",
-              "width": "90px",
-              "title": {
-                "en": "ID",
-                "de": "ID"
               },
-              "attr": "id",
-              "validator": "data.id.length",
+              "validator": "data.id",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine ID ein",
                 "en": "Please enter an id"
               },
-              "validatorNoSaveOnError": true,
-              "filter": false,
-              "sort": true,
-              "default": "",
-              "tooltip": {
-                "en": "ID of the datapoint in the database",
-                "de": "ID des Datenpunktes in der Datenbank"
-              }
+              "validatorNoSaveOnError": true
             },
             {
-              "type": "text",
+              "type": "selectSendTo",
               "width": "300px",
-              "validator": "data.tableFrom.length",
+              "validator": "data.tableFrom",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine Quelltabelle ein",
                 "en": "Please enter a source table"
@@ -217,6 +192,7 @@
                 "en": "From table",
                 "de": "Von Tabelle"
               },
+              "command": "tableFrom",
               "attr": "tableFrom",
               "filter": false,
               "sort": true,

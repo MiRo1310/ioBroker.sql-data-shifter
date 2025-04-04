@@ -8,21 +8,18 @@ export async function createNewTable(table: string): Promise<void> {
             CREATE TABLE IF NOT EXISTS ${table}
             (
                 id
-                INT,
+                    INT,
                 ts
-                BIGINT,
+                    BIGINT,
                 val
-                DOUBLE,
+                    DOUBLE,
                 unit
-                VARCHAR
-            (
-                50
-            ),
+                    VARCHAR(50),
                 createdAt
-                TIMESTAMP
-                DEFAULT
-                CURRENT_TIMESTAMP
-                )`;
+                    TIMESTAMP
+                    DEFAULT
+                        CURRENT_TIMESTAMP
+            )`;
         await connection.query(query);
     });
 }
@@ -52,5 +49,17 @@ export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterR
             }
             await connection.execute(saveQuery, [entry.id, row.ts, row.val, entry.unit ?? ""]);
         }
+    });
+};
+
+export const getAllTables = async (): Promise<string[]> => {
+    return useConnection(async (connection) => {
+        const [rows] = await connection.query("SHOW TABLES");
+
+        const result = rows as Record<string, string>[];
+
+        return result.map((row): string => {
+            return Object.keys(row).map((key) => row[key])[0];
+        });
     });
 };

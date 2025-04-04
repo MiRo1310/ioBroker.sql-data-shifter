@@ -26,6 +26,7 @@ var import_connection = require("./connection");
 var import_lib = require("./lib/lib");
 var import_node_schedule = __toESM(require("node-schedule"));
 var import_querys = require("./app/querys");
+var import_getTablesForFrontendUsage = require("./app/getTablesForFrontendUsage");
 class SqlDataShifter extends utils.Adapter {
   scheduleJob;
   constructor(options = {}) {
@@ -189,17 +190,24 @@ class SqlDataShifter extends utils.Adapter {
   //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
-  onMessage(obj) {
-    this.log.error("getIds");
-    this.log.error(JSON.stringify(obj));
+  async onMessage(obj) {
     switch (obj.command) {
       case "id": {
-        const result = [
-          { label: "test", value: 1 },
-          { label: "test2", value: 2 }
-        ];
-        obj.callback && this.sendTo(obj.from, obj.command, result, obj.callback);
+        const result = await (0, import_getTablesForFrontendUsage.getDatapointsTable)();
+        const options = result.map((item) => ({
+          label: `${item.id} | ${item.name}`,
+          value: item.id
+        }));
+        obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
         break;
+      }
+      case "tableFrom": {
+        const tables = await (0, import_querys.getAllTables)();
+        const options = tables.map((item) => ({
+          label: item,
+          value: item
+        }));
+        obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
       }
     }
   }

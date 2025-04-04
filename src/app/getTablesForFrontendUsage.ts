@@ -1,7 +1,7 @@
 import { useConnection } from "../connection";
 import type { DatapointsTable } from "../types/types";
 
-const getDatapoints = async () => {
+export const getDatapointsTable = async (): Promise<DatapointsTable[]> => {
     return await useConnection(async (connection) => {
         const query = `SELECT *
                        FROM datapoints`;

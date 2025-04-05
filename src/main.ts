@@ -77,16 +77,14 @@ class SqlDataShifter extends utils.Adapter {
             const timeInMilliseconds = entry.time * 1000;
 
             const job = schedule.scheduleJob(entry.schedule, async () => {
-                this.log.debug(`Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
-                const table = entry.tableFrom;
-
                 await useConnection(async (connection) => {
                     const date = Date.now();
+                    this.log.debug(
+                        `Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`,
+                    );
 
-                    console.log("id ", entry.id);
-                    console.log("table", table);
                     const selectQuery = `SELECT *
-                                         from ${table}
+                                         from ${entry.tableFrom}
                                          WHERE id = ?
                                            AND ts <= ?
                                            AND ts > ?`;
@@ -96,20 +94,18 @@ class SqlDataShifter extends utils.Adapter {
                         date,
                         entry.oldTimestamp || date - timeInMilliseconds,
                     ]);
-                    console.log(entry.oldTimestamp || date - timeInMilliseconds);
-                    console.log(date, date - timeInMilliseconds);
-                    console.log(entry.oldTimestamp);
-                    console.log("rows", rows);
+
+                    this.log.debug(`Date: ${date}, Old date: ${entry.oldTimestamp}`);
+
+                    this.log.debug(`Rows: ${JSON.stringify(rows)}`);
                     entry.oldTimestamp = date;
                     const result = rows as SqlIobrokerAdapterRow[];
-                    //TODO- Runden
-                    // Zeitzone einstellen können
+
                     if (result.length === 0) {
-                        console.log("Write zero ", entry.writeZero);
                         if (entry.writeZero) {
                             await saveData(entry, date, 0);
                         }
-                        this.log.debug(`No data found for ${entry.id}`);
+                        this.log.debug(`No data found for ${entry.id} in ${entry.tableFrom}`);
                         return;
                     }
 
@@ -143,7 +139,7 @@ class SqlDataShifter extends utils.Adapter {
 
                     if (entry.delete) {
                         const deleteQuery = `DELETE
-                                             FROM ${table}
+                                             FROM ${entry.tableFrom}
                                              WHERE id = ?
                                                AND ts <= ?`;
 

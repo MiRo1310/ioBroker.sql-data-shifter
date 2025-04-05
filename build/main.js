@@ -77,14 +77,13 @@ class SqlDataShifter extends utils.Adapter {
       await (0, import_querys.createNewTable)(entry.tableTo);
       const timeInMilliseconds = entry.time * 1e3;
       const job = import_node_schedule.default.scheduleJob(entry.schedule, async () => {
-        this.log.debug(`Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
-        const table = entry.tableFrom;
         await (0, import_connection.useConnection)(async (connection) => {
           const date = Date.now();
-          console.log("id ", entry.id);
-          console.log("table", table);
+          this.log.debug(
+            `Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`
+          );
           const selectQuery = `SELECT *
-                                         from ${table}
+                                         from ${entry.tableFrom}
                                          WHERE id = ?
                                            AND ts <= ?
                                            AND ts > ?`;
@@ -93,18 +92,15 @@ class SqlDataShifter extends utils.Adapter {
             date,
             entry.oldTimestamp || date - timeInMilliseconds
           ]);
-          console.log(entry.oldTimestamp || date - timeInMilliseconds);
-          console.log(date, date - timeInMilliseconds);
-          console.log(entry.oldTimestamp);
-          console.log("rows", rows);
+          this.log.debug(`Date: ${date}, Old date: ${entry.oldTimestamp}`);
+          this.log.debug(`Rows: ${JSON.stringify(rows)}`);
           entry.oldTimestamp = date;
           const result = rows;
           if (result.length === 0) {
-            console.log("Write zero ", entry.writeZero);
             if (entry.writeZero) {
               await (0, import_querys.saveData)(entry, date, 0);
             }
-            this.log.debug(`No data found for ${entry.id}`);
+            this.log.debug(`No data found for ${entry.id} in ${entry.tableFrom}`);
             return;
           }
           if (entry.operation === "sum") {
@@ -133,7 +129,7 @@ class SqlDataShifter extends utils.Adapter {
           }
           if (entry.delete) {
             const deleteQuery = `DELETE
-                                             FROM ${table}
+                                             FROM ${entry.tableFrom}
                                              WHERE id = ?
                                                AND ts <= ?`;
             await connection.execute(deleteQuery, [entry.id, date]);

@@ -68,6 +68,7 @@ class SqlDataShifter extends utils.Adapter {
     if (!isConnectionSuccessful) {
       return;
     }
+    await (0, import_querys.setTimeZone)(this.config.timeZone);
     const tableObject = (0, import_lib.addParamsToTableItem)(this.config.table);
     for (const entry of tableObject) {
       if (!entry.active) {
@@ -76,7 +77,7 @@ class SqlDataShifter extends utils.Adapter {
       await (0, import_querys.createNewTable)(entry.tableTo);
       const timeInMilliseconds = entry.time * 1e3;
       const job = import_node_schedule.default.scheduleJob(entry.schedule, async () => {
-        this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
+        this.log.debug(`Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
         const table = entry.tableFrom;
         await (0, import_connection.useConnection)(async (connection) => {
           const date = Date.now();

@@ -21,7 +21,8 @@ __export(querys_exports, {
   createNewTable: () => createNewTable,
   getAllTables: () => getAllTables,
   saveData: () => saveData,
-  saveDataArray: () => saveDataArray
+  saveDataArray: () => saveDataArray,
+  setTimeZone: () => setTimeZone
 });
 module.exports = __toCommonJS(querys_exports);
 var import_connection = require("../connection");
@@ -82,11 +83,21 @@ const getAllTables = async () => {
     });
   });
 };
+const setTimeZone = async (timeZone) => {
+  if (timeZone === "0" || !timeZone) {
+    return;
+  }
+  return await (0, import_connection.useConnection)(async (connection) => {
+    const query = `SET time_zone = ?`;
+    await connection.query(query, [timeZone]);
+  });
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   createNewTable,
   getAllTables,
   saveData,
-  saveDataArray
+  saveDataArray,
+  setTimeZone
 });
 //# sourceMappingURL=querys.js.map

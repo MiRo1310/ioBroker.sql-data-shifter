@@ -9,6 +9,14 @@
         "en": "Configuration"
       },
       "items": {
+        "head": {
+          "type": "header",
+          "size": 3,
+          "text": {
+            "en": "Connection data to the database",
+            "de": "Verbindungsdaten zur Datenbank"
+          }
+        },
         "ip": {
           "type": "text",
           "lg": 2,
@@ -92,6 +100,40 @@
             "de": "Name der Datenbank"
           },
           "newLine": true
+        },
+        "head2": {
+          "type": "header",
+          "size": 3,
+          "text": {
+            "de": "Datenbank Einstellungen",
+            "en": "Database settings"
+          }
+        },
+        "timeZone": {
+          "type": "text",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "validator": "data.timeZone.length",
+          "validatorErrorText": {
+            "de": "Bitte korrigiere die Zeitzone",
+            "en": "Please correct the timezone"
+          },
+          "validatorNoSaveOnError": true,
+          "label": {
+            "de": "Zeitzone",
+            "en": "Time zone"
+          },
+          "tooltip": {
+            "de": "Zeitzone der Datenbank",
+            "en": "Time zone of the database"
+          },
+          "default": "0",
+          "newLine": false,
+          "help": {
+            "de": "0 = Deaktiviert - Beispiel: +00:00",
+            "en": "0 = Disabled - Example: +00:00"
+          }
         }
       }
     },

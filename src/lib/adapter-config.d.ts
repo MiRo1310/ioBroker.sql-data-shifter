@@ -9,6 +9,7 @@ declare global {
             ip: string;
             database: string;
             table: TableItem[]
+            timeZone?: string
         }
     }
 }

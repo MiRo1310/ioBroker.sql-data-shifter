@@ -63,3 +63,13 @@ export const getAllTables = async (): Promise<string[]> => {
         });
     });
 };
+
+export const setTimeZone = async (timeZone?: string): Promise<void> => {
+    if (timeZone === "0" || !timeZone) {
+        return;
+    }
+    return await useConnection(async (connection) => {
+        const query = `SET time_zone = ?`;
+        await connection.query(query, [timeZone]);
+    });
+};

@@ -11,7 +11,7 @@ import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } f
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
-import { createNewTable, getAllTables, saveData, saveDataArray } from "./app/querys";
+import { createNewTable, getAllTables, saveData, saveDataArray, setTimeZone } from "./app/querys";
 import { getDatapointsTable } from "./app/getTablesForFrontendUsage";
 
 class SqlDataShifter extends utils.Adapter {
@@ -64,6 +64,8 @@ class SqlDataShifter extends utils.Adapter {
             return;
         }
 
+        await setTimeZone(this.config.timeZone);
+
         const tableObject = addParamsToTableItem(this.config.table);
 
         for (const entry of tableObject) {
@@ -75,22 +77,12 @@ class SqlDataShifter extends utils.Adapter {
             const timeInMilliseconds = entry.time * 1000;
 
             const job = schedule.scheduleJob(entry.schedule, async () => {
-                this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
+                this.log.debug(`Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
                 const table = entry.tableFrom;
 
                 await useConnection(async (connection) => {
                     const date = Date.now();
 
-                    // let selectQuery: string;
-
-                    // let rows: QueryResult;
-                    // if (entry.delete) {
-                    //     selectQuery = `SELECT *
-                    //                    from ${table}
-                    //                    WHERE id = ?
-                    //                      AND ts <= ?`;
-                    //     [rows] = await connection.execute(selectQuery, [entry.id, date]);
-                    // } else {
                     console.log("id ", entry.id);
                     console.log("table", table);
                     const selectQuery = `SELECT *

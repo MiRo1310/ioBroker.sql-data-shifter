@@ -5,6 +5,10 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -21,12 +25,19 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var main_exports = {};
+__export(main_exports, {
+  dbConfig: () => dbConfig
+});
+module.exports = __toCommonJS(main_exports);
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_connection = require("./connection");
 var import_lib = require("./lib/lib");
 var import_node_schedule = __toESM(require("node-schedule"));
 var import_querys = require("./app/querys");
 var import_getTablesForFrontendUsage = require("./app/getTablesForFrontendUsage");
+const dbConfig = {};
 class SqlDataShifter extends utils.Adapter {
   scheduleJob;
   constructor(options = {}) {
@@ -43,7 +54,6 @@ class SqlDataShifter extends utils.Adapter {
    * Is called when databases are connected and adapter received configuration.
    */
   async onReady() {
-    const dbConfig = {};
     if (!this.config.user || !this.config.password || !this.config.database) {
       return;
     }
@@ -51,7 +61,6 @@ class SqlDataShifter extends utils.Adapter {
     dbConfig.user = this.config.user;
     dbConfig.password = this.config.password;
     dbConfig.database = this.config.database;
-    (0, import_connection.setDBConfig)(dbConfig);
     let isConnectionSuccessful = false;
     try {
       isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
@@ -188,6 +197,7 @@ class SqlDataShifter extends utils.Adapter {
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
   async onMessage(obj) {
+    console.log(JSON.stringify(obj));
     switch (obj.command) {
       case "id": {
         const result = await (0, import_getTablesForFrontendUsage.getDatapointsTable)();
@@ -214,4 +224,8 @@ if (require.main !== module) {
 } else {
   (() => new SqlDataShifter())();
 }
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  dbConfig
+});
 //# sourceMappingURL=main.js.map

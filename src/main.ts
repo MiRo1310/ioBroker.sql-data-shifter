@@ -6,13 +6,15 @@
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
 import type { DBConfig, SqlIobrokerAdapterRow } from "./types/types";
-import { setDBConfig, useConnection } from "./connection";
+import { useConnection } from "./connection";
 import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } from "./lib/lib";
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
 import { createNewTable, getAllTables, saveData, saveDataArray, setTimeZone } from "./app/querys";
 import { getDatapointsTable } from "./app/getTablesForFrontendUsage";
+
+export const dbConfig: DBConfig = {} as DBConfig;
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -34,8 +36,6 @@ class SqlDataShifter extends utils.Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     private async onReady(): Promise<void> {
-        const dbConfig: DBConfig = {} as DBConfig;
-
         if (!this.config.user || !this.config.password || !this.config.database) {
             return;
         }
@@ -45,7 +45,6 @@ class SqlDataShifter extends utils.Adapter {
         dbConfig.password = this.config.password;
         dbConfig.database = this.config.database;
 
-        setDBConfig(dbConfig);
         let isConnectionSuccessful = false;
         try {
             isConnectionSuccessful = await useConnection(async (connection) => {
@@ -246,6 +245,7 @@ class SqlDataShifter extends utils.Adapter {
     //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
     //  */
     private async onMessage(obj: ioBroker.Message): Promise<void> {
+        console.log(JSON.stringify(obj));
         switch (obj.command) {
             case "id": {
                 const result = await getDatapointsTable();

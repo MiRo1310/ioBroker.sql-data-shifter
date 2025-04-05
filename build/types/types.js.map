@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../../src/types/types.ts"],
-  "sourcesContent": ["export interface DBConfig {\n    host: string;\n    user: string;\n    password: string;\n    database: string;\n}\n\nexport interface SqlIobrokerAdapterRow {\n    id: number;\n    ts: number;\n    val: number | null | string;\n    ack: number;\n    _from: number;\n    q: number;\n}\n\nexport interface DatapointsTable {\n    id: number;\n    name: string;\n    type: number;\n}\n"],
+  "sourcesContent": ["export interface DBConfig {\n    host: string;\n    user: string;\n    password: string;\n    database: string;\n}\n\nexport interface SqlIobrokerAdapterRow {\n    id: number;\n    ts: number;\n    val: number | null | string;\n    ack: number;\n    _from: number;\n    q: number;\n}\n\nexport interface DatapointsTable {\n    id: number;\n    name: string;\n    type: number;\n}\n\nexport interface TableSize {\n    table: string;\n    \"size_(MB)\": number;\n}\n"],
   "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
   "names": []
 }

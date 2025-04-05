@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/app/tableSize.ts"],
+  "sourcesContent": ["import { getAllTables, getTableSize } from \"./querys\";\nimport type { TableSize } from \"../types/types\";\nimport { dbConfig } from \"../main\";\n\nconst getTableSizes = async (): Promise<void> => {\n    const tables = await getAllTables();\n    const tableSizes: TableSize[] = [];\n    await Promise.all(\n        tables.map(async (table) => {\n            tableSizes.push(await getTableSize(dbConfig.database, table));\n        }),\n    );\n    console.log(JSON.stringify(tableSizes));\n};\n"],
+  "mappings": ";AAAA,oBAA2C;AAE3C,kBAAyB;AAEzB,MAAM,gBAAgB,YAA2B;AAC7C,QAAM,SAAS,UAAM,4BAAa;AAClC,QAAM,aAA0B,CAAC;AACjC,QAAM,QAAQ;AAAA,IACV,OAAO,IAAI,OAAO,UAAU;AACxB,iBAAW,KAAK,UAAM,4BAAa,qBAAS,UAAU,KAAK,CAAC;AAAA,IAChE,CAAC;AAAA,EACL;AACA,UAAQ,IAAI,KAAK,UAAU,UAAU,CAAC;AAC1C;",
+  "names": []
+}

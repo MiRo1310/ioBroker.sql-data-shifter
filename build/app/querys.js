@@ -20,6 +20,7 @@ var querys_exports = {};
 __export(querys_exports, {
   createNewTable: () => createNewTable,
   getAllTables: () => getAllTables,
+  getTableSize: () => getTableSize,
   saveData: () => saveData,
   saveDataArray: () => saveDataArray,
   setTimeZone: () => setTimeZone
@@ -93,10 +94,28 @@ const setTimeZone = async (timeZone) => {
     await connection.query(query, [timeZone]);
   });
 };
+const getTableSize = async (database, table) => {
+  return await (0, import_connection.useConnection)(async (connection) => {
+    const [rows] = await connection.execute(
+      `SELECT table_name                                             AS "table",
+                    round(((data_length + index_length) / 1024 / 1024), 2) AS "size_(MB)"
+             FROM information_schema.TABLES
+             WHERE table_schema = ?
+               AND table_name = ?;
+            `,
+      [database, table]
+    );
+    if (rows.length) {
+      return rows[0];
+    }
+    throw new Error(`Tabelle ${table} nicht gefunden.`);
+  });
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   createNewTable,
   getAllTables,
+  getTableSize,
   saveData,
   saveDataArray,
   setTimeZone

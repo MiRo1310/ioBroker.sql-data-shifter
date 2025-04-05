@@ -1,6 +1,6 @@
 import { useConnection } from "../connection";
 import type { TableItem } from "../lib/adapter-config";
-import type { SqlIobrokerAdapterRow } from "../types/types";
+import type { SqlIobrokerAdapterRow, TableSize } from "../types/types";
 import { isDefined, roundValue } from "../lib/lib";
 
 export async function createNewTable(table: string): Promise<void> {
@@ -72,5 +72,24 @@ export const setTimeZone = async (timeZone?: string): Promise<void> => {
     return await useConnection(async (connection) => {
         const query = `SET time_zone = ?`;
         await connection.query(query, [timeZone]);
+    });
+};
+
+export const getTableSize = async (database: string, table: string): Promise<TableSize> => {
+    return await useConnection(async (connection): Promise<TableSize> => {
+        const [rows] = await connection.execute(
+            `SELECT table_name                                             AS "table",
+                    round(((data_length + index_length) / 1024 / 1024), 2) AS "size_(MB)"
+             FROM information_schema.TABLES
+             WHERE table_schema = ?
+               AND table_name = ?;
+            `,
+            [database, table],
+        );
+
+        if ((rows as TableSize[]).length) {
+            return (rows as TableSize[])[0];
+        }
+        throw new Error(`Tabelle ${table} nicht gefunden.`);
     });
 };

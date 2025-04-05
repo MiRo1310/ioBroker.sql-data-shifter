@@ -1,11 +1,5 @@
 import mysql from "mysql2/promise";
-import type { DBConfig } from "./types/types";
-
-let dbConfig: DBConfig = {} as DBConfig;
-
-export function setDBConfig(config: DBConfig): void {
-    dbConfig = config;
-}
+import { dbConfig } from "./main";
 
 export async function useConnection<T>(cb: (connection: mysql.Connection) => Promise<T>): Promise<T> {
     let connection;

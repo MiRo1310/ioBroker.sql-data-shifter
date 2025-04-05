@@ -1,6 +1,7 @@
 import { useConnection } from "../connection";
 import type { TableItem } from "../lib/adapter-config";
 import type { SqlIobrokerAdapterRow } from "../types/types";
+import { isDefined, roundValue } from "../lib/lib";
 
 export async function createNewTable(table: string): Promise<void> {
     return useConnection(async (connection) => {
@@ -28,10 +29,10 @@ export const saveData = async (entry: TableItem, date: number, val: number): Pro
     return useConnection(async (connection) => {
         const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
-        if (val === null) {
+        if (!isDefined(val)) {
             return;
         }
-        await connection.execute(saveQuery, [entry.id, date, val, entry.unit ?? ""]);
+        await connection.execute(saveQuery, [entry.id, date, roundValue(entry, val), entry.unit ?? ""]);
     });
 };
 
@@ -41,13 +42,13 @@ export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterR
                            VALUES (?, ?, ?, ?)`;
 
         for (const row of table) {
-            if (row.val === null) {
+            if (!isDefined(row.val)) {
                 continue;
             }
             if (row.val === 0 && !entry.writeZero) {
                 continue;
             }
-            await connection.execute(saveQuery, [entry.id, row.ts, row.val, entry.unit ?? ""]);
+            await connection.execute(saveQuery, [entry.id, row.ts, roundValue(entry, row.val), entry.unit ?? ""]);
         }
     });
 };

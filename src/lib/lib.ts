@@ -32,3 +32,16 @@ export const addParamsToTableItem = (table: TableItem[]): (TableItem & { oldTime
         return { ...item, oldTimestamp: 0 };
     });
 };
+
+export const isDefined = (
+    value?: string | number | boolean | null | object,
+): value is string | number | boolean | object => {
+    return value !== undefined && value !== null;
+};
+
+export const roundValue = <T>(entry: TableItem, val?: T): T | undefined => {
+    if (typeof val === "string" || entry.round === 0 || typeof val !== "number") {
+        return val;
+    }
+    return Number(val.toFixed(entry.round)) as T;
+};

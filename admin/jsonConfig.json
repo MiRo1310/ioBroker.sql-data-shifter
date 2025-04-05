@@ -300,6 +300,33 @@
               }
             },
             {
+              "type": "number",
+              "title": {
+                "en": "Round decimal places",
+                "de": "Decimal Stellen Runden"
+              },
+              "attr": "round",
+              "filter": false,
+              "min": 0,
+              "step": 1,
+              "sort": true,
+              "default": 0,
+              "validator": "data.round % 1 == 0",
+              "validatorErrorText": {
+                "de": "",
+                "en": ""
+              },
+              "validatorNoSaveOnError": true,
+              "tooltip": {
+                "en": "Number of decimal places",
+                "de": "Anzahl der Dezimalstellen"
+              },
+              "help": {
+                "en": "0 = Deactivate",
+                "de": "0 = Deaktiviert"
+              }
+            },
+            {
               "type": "select",
               "title": {
                 "en": "Operation",
@@ -393,6 +420,13 @@
               }
             }
           ]
+        },
+        "desciption": {
+          "type": "staticText",
+          "text": {
+            "en": "The target table can be freely selected, if it does not exist it will be created",
+            "de": "Die Zieltabelle kann frei gewählt werden, wenn diese nicht existiert, wird sie erstellt"
+          }
         }
       }
     }

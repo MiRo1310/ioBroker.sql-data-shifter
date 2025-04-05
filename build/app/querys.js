@@ -26,6 +26,7 @@ __export(querys_exports, {
 });
 module.exports = __toCommonJS(querys_exports);
 var import_connection = require("../connection");
+var import_lib = require("../lib/lib");
 async function createNewTable(table) {
   return (0, import_connection.useConnection)(async (connection) => {
     const query = `
@@ -52,10 +53,10 @@ const saveData = async (entry, date, val) => {
     var _a;
     const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
-    if (val === null) {
+    if (!(0, import_lib.isDefined)(val)) {
       return;
     }
-    await connection.execute(saveQuery, [entry.id, date, val, (_a = entry.unit) != null ? _a : ""]);
+    await connection.execute(saveQuery, [entry.id, date, (0, import_lib.roundValue)(entry, val), (_a = entry.unit) != null ? _a : ""]);
   });
 };
 const saveDataArray = async (entry, table) => {
@@ -64,13 +65,13 @@ const saveDataArray = async (entry, table) => {
     const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
     for (const row of table) {
-      if (row.val === null) {
+      if (!(0, import_lib.isDefined)(row.val)) {
         continue;
       }
       if (row.val === 0 && !entry.writeZero) {
         continue;
       }
-      await connection.execute(saveQuery, [entry.id, row.ts, row.val, (_a = entry.unit) != null ? _a : ""]);
+      await connection.execute(saveQuery, [entry.id, row.ts, (0, import_lib.roundValue)(entry, row.val), (_a = entry.unit) != null ? _a : ""]);
     }
   });
 };

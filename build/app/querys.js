@@ -19,32 +19,32 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var querys_exports = {};
 __export(querys_exports, {
   createNewTable: () => createNewTable,
+  getAllTables: () => getAllTables,
   saveData: () => saveData,
-  saveDataArray: () => saveDataArray
+  saveDataArray: () => saveDataArray,
+  setTimeZone: () => setTimeZone
 });
 module.exports = __toCommonJS(querys_exports);
 var import_connection = require("../connection");
+var import_lib = require("../lib/lib");
 async function createNewTable(table) {
   return (0, import_connection.useConnection)(async (connection) => {
     const query = `
             CREATE TABLE IF NOT EXISTS ${table}
             (
                 id
-                INT,
+                    INT,
                 ts
-                BIGINT,
+                    BIGINT,
                 val
-                DOUBLE,
+                    DOUBLE,
                 unit
-                VARCHAR
-            (
-                50
-            ),
+                    VARCHAR(50),
                 createdAt
-                TIMESTAMP
-                DEFAULT
-                CURRENT_TIMESTAMP
-                )`;
+                    TIMESTAMP
+                    DEFAULT
+                        CURRENT_TIMESTAMP
+            )`;
     await connection.query(query);
   });
 }
@@ -53,7 +53,10 @@ const saveData = async (entry, date, val) => {
     var _a;
     const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
-    await connection.execute(saveQuery, [entry.id, date, val, (_a = entry.unit) != null ? _a : ""]);
+    if (!(0, import_lib.isDefined)(val)) {
+      return;
+    }
+    await connection.execute(saveQuery, [entry.id, date, (0, import_lib.roundValue)(entry, val), (_a = entry.unit) != null ? _a : ""]);
   });
 };
 const saveDataArray = async (entry, table) => {
@@ -62,17 +65,40 @@ const saveDataArray = async (entry, table) => {
     const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
     for (const row of table) {
+      if (!(0, import_lib.isDefined)(row.val)) {
+        continue;
+      }
       if (row.val === 0 && !entry.writeZero) {
         continue;
       }
-      await connection.execute(saveQuery, [entry.id, row.ts, row.val, (_a = entry.unit) != null ? _a : ""]);
+      await connection.execute(saveQuery, [entry.id, row.ts, (0, import_lib.roundValue)(entry, row.val), (_a = entry.unit) != null ? _a : ""]);
     }
+  });
+};
+const getAllTables = async () => {
+  return (0, import_connection.useConnection)(async (connection) => {
+    const [rows] = await connection.query("SHOW TABLES");
+    const result = rows;
+    return result.map((row) => {
+      return Object.keys(row).map((key) => row[key])[0];
+    });
+  });
+};
+const setTimeZone = async (timeZone) => {
+  if (timeZone === "0" || !timeZone) {
+    return;
+  }
+  return await (0, import_connection.useConnection)(async (connection) => {
+    const query = `SET time_zone = ?`;
+    await connection.query(query, [timeZone]);
   });
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   createNewTable,
+  getAllTables,
   saveData,
-  saveDataArray
+  saveDataArray,
+  setTimeZone
 });
 //# sourceMappingURL=querys.js.map

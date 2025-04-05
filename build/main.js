@@ -25,7 +25,8 @@ var utils = __toESM(require("@iobroker/adapter-core"));
 var import_connection = require("./connection");
 var import_lib = require("./lib/lib");
 var import_node_schedule = __toESM(require("node-schedule"));
-var import_querys = require("./lib/querys");
+var import_querys = require("./app/querys");
+var import_getTablesForFrontendUsage = require("./app/getTablesForFrontendUsage");
 class SqlDataShifter extends utils.Adapter {
   scheduleJob;
   constructor(options = {}) {
@@ -35,13 +36,13 @@ class SqlDataShifter extends utils.Adapter {
     });
     this.scheduleJob = [];
     this.on("ready", this.onReady.bind(this));
+    this.on("message", this.onMessage.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
    * Is called when databases are connected and adapter received configuration.
    */
   async onReady() {
-    console.log("SqlDataShifter ready");
     const dbConfig = {};
     if (!this.config.user || !this.config.password || !this.config.database) {
       return;
@@ -67,6 +68,7 @@ class SqlDataShifter extends utils.Adapter {
     if (!isConnectionSuccessful) {
       return;
     }
+    await (0, import_querys.setTimeZone)(this.config.timeZone);
     const tableObject = (0, import_lib.addParamsToTableItem)(this.config.table);
     for (const entry of tableObject) {
       if (!entry.active) {
@@ -75,12 +77,13 @@ class SqlDataShifter extends utils.Adapter {
       await (0, import_querys.createNewTable)(entry.tableTo);
       const timeInMilliseconds = entry.time * 1e3;
       const job = import_node_schedule.default.scheduleJob(entry.schedule, async () => {
-        this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
-        const table = entry.tableFrom;
         await (0, import_connection.useConnection)(async (connection) => {
           const date = Date.now();
+          this.log.debug(
+            `Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`
+          );
           const selectQuery = `SELECT *
-                                         from ${table}
+                                         from ${entry.tableFrom}
                                          WHERE id = ?
                                            AND ts <= ?
                                            AND ts > ?`;
@@ -89,13 +92,15 @@ class SqlDataShifter extends utils.Adapter {
             date,
             entry.oldTimestamp || date - timeInMilliseconds
           ]);
+          this.log.debug(`Date: ${date}, Old date: ${entry.oldTimestamp}`);
+          this.log.debug(`Rows: ${JSON.stringify(rows)}`);
           entry.oldTimestamp = date;
           const result = rows;
           if (result.length === 0) {
             if (entry.writeZero) {
               await (0, import_querys.saveData)(entry, date, 0);
             }
-            this.log.debug(`No data found for ${entry.id}`);
+            this.log.debug(`No data found for ${entry.id} in ${entry.tableFrom}`);
             return;
           }
           if (entry.operation === "sum") {
@@ -123,9 +128,8 @@ class SqlDataShifter extends utils.Adapter {
             await (0, import_querys.saveDataArray)(entry, result);
           }
           if (entry.delete) {
-            console.log("Deleting");
             const deleteQuery = `DELETE
-                                             FROM ${table}
+                                             FROM ${entry.tableFrom}
                                              WHERE id = ?
                                                AND ts <= ?`;
             await connection.execute(deleteQuery, [entry.id, date]);
@@ -183,16 +187,27 @@ class SqlDataShifter extends utils.Adapter {
   //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
-  // private onMessage(obj: ioBroker.Message): void {
-  //     if (typeof obj === "object" && obj.message) {
-  //         if (obj.command === "send") {
-  //             // e.g. send email or pushover or whatever
-  //             this.log.info("send command");
-  //             // Send response in callback if required
-  //             if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-  //         }
-  //     }
-  // }
+  async onMessage(obj) {
+    switch (obj.command) {
+      case "id": {
+        const result = await (0, import_getTablesForFrontendUsage.getDatapointsTable)();
+        const options = result.map((item) => ({
+          label: `${item.id} | ${item.name}`,
+          value: item.id
+        }));
+        obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
+        break;
+      }
+      case "tableFrom": {
+        const tables = await (0, import_querys.getAllTables)();
+        const options = tables.map((item) => ({
+          label: item,
+          value: item
+        }));
+        obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
+      }
+    }
+  }
 }
 if (require.main !== module) {
   module.exports = (options) => new SqlDataShifter(options);

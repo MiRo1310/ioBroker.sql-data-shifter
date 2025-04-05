@@ -9,6 +9,14 @@
         "en": "Configuration"
       },
       "items": {
+        "head": {
+          "type": "header",
+          "size": 3,
+          "text": {
+            "en": "Connection data to the database",
+            "de": "Verbindungsdaten zur Datenbank"
+          }
+        },
         "ip": {
           "type": "text",
           "lg": 2,
@@ -92,6 +100,40 @@
             "de": "Name der Datenbank"
           },
           "newLine": true
+        },
+        "head2": {
+          "type": "header",
+          "size": 3,
+          "text": {
+            "de": "Datenbank Einstellungen",
+            "en": "Database settings"
+          }
+        },
+        "timeZone": {
+          "type": "text",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "validator": "data.timeZone.length",
+          "validatorErrorText": {
+            "de": "Bitte korrigiere die Zeitzone",
+            "en": "Please correct the timezone"
+          },
+          "validatorNoSaveOnError": true,
+          "label": {
+            "de": "Zeitzone",
+            "en": "Time zone"
+          },
+          "tooltip": {
+            "de": "Zeitzone der Datenbank",
+            "en": "Time zone of the database"
+          },
+          "default": "0",
+          "newLine": false,
+          "help": {
+            "de": "0 = Deaktiviert - Beispiel: +00:00",
+            "en": "0 = Disabled - Example: +00:00"
+          }
         }
       }
     },
@@ -131,7 +173,7 @@
               "attr": "schedule",
               "filter": false,
               "sort": true,
-              "default": 5
+              "default": ""
             },
             {
               "type": "number",
@@ -153,34 +195,36 @@
               "attr": "time",
               "filter": false,
               "sort": true,
-              "default": 5
+              "default": 60
             },
             {
-              "type": "text",
-              "width": "90px",
+              "type": "selectSendTo",
+              "attr": "id",
+              "width": "250px",
               "title": {
                 "en": "ID",
                 "de": "ID"
               },
-              "attr": "id",
-              "validator": "data.id.length",
+              "tooltip": {
+                "en": "ID of the datapoint in the database",
+                "de": "ID des Datenpunktes in der Datenbank"
+              },
+              "command": "id",
+              "data": {
+                "subject1": 1,
+                "data": "static"
+              },
+              "validator": "data.id",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine ID ein",
                 "en": "Please enter an id"
               },
-              "validatorNoSaveOnError": true,
-              "filter": false,
-              "sort": true,
-              "default": "",
-              "tooltip": {
-                "en": "ID of the datapoint in the database",
-                "de": "ID des Datenpunktes in der Datenbank"
-              }
+              "validatorNoSaveOnError": true
             },
             {
-              "type": "text",
+              "type": "selectSendTo",
               "width": "300px",
-              "validator": "data.tableFrom.length",
+              "validator": "data.tableFrom",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine Quelltabelle ein",
                 "en": "Please enter a source table"
@@ -190,6 +234,7 @@
                 "en": "From table",
                 "de": "Von Tabelle"
               },
+              "command": "tableFrom",
               "attr": "tableFrom",
               "filter": false,
               "sort": true,
@@ -252,6 +297,33 @@
               "tooltip": {
                 "en": "Factor for the calculation",
                 "de": "Faktor für die Berechnung"
+              }
+            },
+            {
+              "type": "number",
+              "title": {
+                "en": "Round decimal places",
+                "de": "Decimal Stellen Runden"
+              },
+              "attr": "round",
+              "filter": false,
+              "min": 0,
+              "step": 1,
+              "sort": true,
+              "default": 0,
+              "validator": "data.round % 1 == 0",
+              "validatorErrorText": {
+                "de": "",
+                "en": ""
+              },
+              "validatorNoSaveOnError": true,
+              "tooltip": {
+                "en": "Number of decimal places",
+                "de": "Anzahl der Dezimalstellen"
+              },
+              "help": {
+                "en": "0 = Deactivate",
+                "de": "0 = Deaktiviert"
               }
             },
             {
@@ -323,7 +395,7 @@
                 "en": "Write Zero",
                 "de": "Schreibe Null-Werte"
               },
-              "attr": "ariteZero",
+              "attr": "writeZero",
               "filter": false,
               "sort": true,
               "default": true,
@@ -348,6 +420,13 @@
               }
             }
           ]
+        },
+        "desciption": {
+          "type": "staticText",
+          "text": {
+            "en": "The target table can be freely selected, if it does not exist it will be created",
+            "de": "Die Zieltabelle kann frei gewählt werden, wenn diese nicht existiert, wird sie erstellt"
+          }
         }
       }
     }

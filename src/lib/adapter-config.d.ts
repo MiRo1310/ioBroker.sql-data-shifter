@@ -9,6 +9,7 @@ declare global {
             ip: string;
             database: string;
             table: TableItem[]
+            timeZone?: string
         }
     }
 }
@@ -25,6 +26,7 @@ export interface TableItem {
     factor: number;
     active: boolean;
     writeZero: boolean;
+    round: number; // 0 = no rounding
 }
 
 // this is required so the above AdapterConfig is found by TypeScript / type checking

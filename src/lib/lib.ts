@@ -4,14 +4,14 @@ import type { TableItem } from "./adapter-config";
 export function calculateAverage(rows: SqlIobrokerAdapterRow[]): number {
     let sum = 0;
     rows.forEach((row) => {
-        sum += row.val;
+        sum += Number(row.val);
     });
     return sum / rows.length;
 }
 
 export function sumResult(rows: SqlIobrokerAdapterRow[]): number {
     return rows.reduce((acc, row) => {
-        return acc + row.val;
+        return acc + Number(row.val);
     }, 0);
 }
 
@@ -22,7 +22,7 @@ export function differenceResult(rows: SqlIobrokerAdapterRow[]): number {
     if (!firstRow?.val || !lastRow?.val) {
         return 0;
     }
-    return lastRow.val - firstRow.val;
+    return Number(lastRow.val) - Number(firstRow.val);
 }
 
 export const addParamsToTableItem = (table: TableItem[]): (TableItem & { oldTimestamp?: number })[] => {
@@ -31,4 +31,17 @@ export const addParamsToTableItem = (table: TableItem[]): (TableItem & { oldTime
     return tableWithMoreParams.map((item) => {
         return { ...item, oldTimestamp: 0 };
     });
+};
+
+export const isDefined = (
+    value?: string | number | boolean | null | object,
+): value is string | number | boolean | object => {
+    return value !== undefined && value !== null;
+};
+
+export const roundValue = <T>(entry: TableItem, val?: T): T | undefined => {
+    if (typeof val === "string" || entry.round === 0 || typeof val !== "number") {
+        return val;
+    }
+    return Number(val.toFixed(entry.round)) as T;
 };

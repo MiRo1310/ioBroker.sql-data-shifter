@@ -11,7 +11,8 @@ import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } f
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
-import { createNewTable, saveData, saveDataArray } from "./lib/querys";
+import { createNewTable, getAllTables, saveData, saveDataArray, setTimeZone } from "./app/querys";
+import { getDatapointsTable } from "./app/getTablesForFrontendUsage";
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -25,7 +26,7 @@ class SqlDataShifter extends utils.Adapter {
         this.on("ready", this.onReady.bind(this));
         // this.on("stateChange", this.onStateChange.bind(this));
         // this.on("objectChange", this.onObjectChange.bind(this));
-        // this.on("message", this.onMessage.bind(this));
+        this.on("message", this.onMessage.bind(this));
         this.on("unload", this.onUnload.bind(this));
     }
 
@@ -33,7 +34,6 @@ class SqlDataShifter extends utils.Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     private async onReady(): Promise<void> {
-        console.log("SqlDataShifter ready");
         const dbConfig: DBConfig = {} as DBConfig;
 
         if (!this.config.user || !this.config.password || !this.config.database) {
@@ -64,6 +64,8 @@ class SqlDataShifter extends utils.Adapter {
             return;
         }
 
+        await setTimeZone(this.config.timeZone);
+
         const tableObject = addParamsToTableItem(this.config.table);
 
         for (const entry of tableObject) {
@@ -75,24 +77,14 @@ class SqlDataShifter extends utils.Adapter {
             const timeInMilliseconds = entry.time * 1000;
 
             const job = schedule.scheduleJob(entry.schedule, async () => {
-                this.log.debug(`Schedule job for ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`);
-                const table = entry.tableFrom;
-
                 await useConnection(async (connection) => {
                     const date = Date.now();
+                    this.log.debug(
+                        `Schedule job for id: ${entry.id} started, from ${entry.tableFrom} to ${entry.tableTo}`,
+                    );
 
-                    // let selectQuery: string;
-
-                    // let rows: QueryResult;
-                    // if (entry.delete) {
-                    //     selectQuery = `SELECT *
-                    //                    from ${table}
-                    //                    WHERE id = ?
-                    //                      AND ts <= ?`;
-                    //     [rows] = await connection.execute(selectQuery, [entry.id, date]);
-                    // } else {
                     const selectQuery = `SELECT *
-                                         from ${table}
+                                         from ${entry.tableFrom}
                                          WHERE id = ?
                                            AND ts <= ?
                                            AND ts > ?`;
@@ -102,15 +94,18 @@ class SqlDataShifter extends utils.Adapter {
                         date,
                         entry.oldTimestamp || date - timeInMilliseconds,
                     ]);
-                    // }
+
+                    this.log.debug(`Date: ${date}, Old date: ${entry.oldTimestamp}`);
+
+                    this.log.debug(`Rows: ${JSON.stringify(rows)}`);
                     entry.oldTimestamp = date;
                     const result = rows as SqlIobrokerAdapterRow[];
-                    //TODO- Runden
+
                     if (result.length === 0) {
                         if (entry.writeZero) {
                             await saveData(entry, date, 0);
                         }
-                        this.log.debug(`No data found for ${entry.id}`);
+                        this.log.debug(`No data found for ${entry.id} in ${entry.tableFrom}`);
                         return;
                     }
 
@@ -143,10 +138,8 @@ class SqlDataShifter extends utils.Adapter {
                     }
 
                     if (entry.delete) {
-                        //TODO - Remove console.log
-                        console.log("Deleting");
                         const deleteQuery = `DELETE
-                                             FROM ${table}
+                                             FROM ${entry.tableFrom}
                                              WHERE id = ?
                                                AND ts <= ?`;
 
@@ -252,17 +245,28 @@ class SqlDataShifter extends utils.Adapter {
     //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
     //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
     //  */
-    // private onMessage(obj: ioBroker.Message): void {
-    //     if (typeof obj === "object" && obj.message) {
-    //         if (obj.command === "send") {
-    //             // e.g. send email or pushover or whatever
-    //             this.log.info("send command");
+    private async onMessage(obj: ioBroker.Message): Promise<void> {
+        switch (obj.command) {
+            case "id": {
+                const result = await getDatapointsTable();
+                const options = result.map((item) => ({
+                    label: `${item.id} | ${item.name}`,
+                    value: item.id,
+                }));
 
-    //             // Send response in callback if required
-    //             if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-    //         }
-    //     }
-    // }
+                obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
+                break;
+            }
+            case "tableFrom": {
+                const tables = await getAllTables();
+                const options = tables.map((item) => ({
+                    label: item,
+                    value: item,
+                }));
+                obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback);
+            }
+        }
+    }
 }
 
 if (require.main !== module) {

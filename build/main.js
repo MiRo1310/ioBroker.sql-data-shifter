@@ -5,6 +5,10 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -21,12 +25,22 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var main_exports = {};
+__export(main_exports, {
+  _this: () => _this,
+  dbConfig: () => dbConfig
+});
+module.exports = __toCommonJS(main_exports);
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_connection = require("./connection");
 var import_lib = require("./lib/lib");
 var import_node_schedule = __toESM(require("node-schedule"));
 var import_querys = require("./app/querys");
 var import_getTablesForFrontendUsage = require("./app/getTablesForFrontendUsage");
+var import_tableSize = require("./app/tableSize");
+const dbConfig = {};
+let _this;
 class SqlDataShifter extends utils.Adapter {
   scheduleJob;
   constructor(options = {}) {
@@ -43,32 +57,28 @@ class SqlDataShifter extends utils.Adapter {
    * Is called when databases are connected and adapter received configuration.
    */
   async onReady() {
-    const dbConfig = {};
-    if (!this.config.user || !this.config.password || !this.config.database) {
+    const { user, database, password, ip } = this.config;
+    if (!user || !password || !database) {
       return;
     }
-    dbConfig.host = this.config.ip;
-    dbConfig.user = this.config.user;
-    dbConfig.password = this.config.password;
-    dbConfig.database = this.config.database;
-    (0, import_connection.setDBConfig)(dbConfig);
-    let isConnectionSuccessful = false;
-    try {
-      isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
-        if (connection) {
-          await this.setState("info.connection", true, true);
-          return true;
-        }
-        this.log.error("Connection failed");
-        return false;
-      });
-    } catch (e) {
-      console.error(e);
-    }
+    _this = this;
+    dbConfig.host = ip;
+    dbConfig.user = user;
+    dbConfig.password = password;
+    dbConfig.database = database;
+    const isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
+      if (connection) {
+        await this.setState("info.connection", true, true);
+        return true;
+      }
+      this.log.error("Connection failed");
+      return false;
+    });
     if (!isConnectionSuccessful) {
       return;
     }
     await (0, import_querys.setTimeZone)(this.config.timeZone);
+    await (0, import_tableSize.initTableSizes)(this.config.tableSizeCron);
     const tableObject = (0, import_lib.addParamsToTableItem)(this.config.table);
     for (const entry of tableObject) {
       if (!entry.active) {
@@ -147,6 +157,7 @@ class SqlDataShifter extends utils.Adapter {
   onUnload(callback) {
     try {
       this.scheduleJob.forEach((job) => job.cancel());
+      import_tableSize.tableSizeCron.cancel();
       callback();
     } catch (e) {
       console.error(e);
@@ -214,4 +225,9 @@ if (require.main !== module) {
 } else {
   (() => new SqlDataShifter())();
 }
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  _this,
+  dbConfig
+});
 //# sourceMappingURL=main.js.map

@@ -6,13 +6,17 @@
 // you need to create an adapter
 import * as utils from "@iobroker/adapter-core";
 import type { DBConfig, SqlIobrokerAdapterRow } from "./types/types";
-import { setDBConfig, useConnection } from "./connection";
+import { useConnection } from "./connection";
 import { addParamsToTableItem, calculateAverage, differenceResult, sumResult } from "./lib/lib";
 import type { Job } from "node-schedule";
 // eslint-disable-next-line no-duplicate-imports
 import schedule from "node-schedule";
 import { createNewTable, getAllTables, saveData, saveDataArray, setTimeZone } from "./app/querys";
 import { getDatapointsTable } from "./app/getTablesForFrontendUsage";
+import { initTableSizes, tableSizeCron } from "./app/tableSize";
+
+export const dbConfig: DBConfig = {} as DBConfig;
+export let _this: SqlDataShifter;
 
 class SqlDataShifter extends utils.Adapter {
     private scheduleJob: Job[];
@@ -34,37 +38,33 @@ class SqlDataShifter extends utils.Adapter {
      * Is called when databases are connected and adapter received configuration.
      */
     private async onReady(): Promise<void> {
-        const dbConfig: DBConfig = {} as DBConfig;
+        const { user, database, password, ip } = this.config;
 
-        if (!this.config.user || !this.config.password || !this.config.database) {
+        if (!user || !password || !database) {
             return;
         }
+        _this = this;
 
-        dbConfig.host = this.config.ip;
-        dbConfig.user = this.config.user;
-        dbConfig.password = this.config.password;
-        dbConfig.database = this.config.database;
+        dbConfig.host = ip;
+        dbConfig.user = user;
+        dbConfig.password = password;
+        dbConfig.database = database;
 
-        setDBConfig(dbConfig);
-        let isConnectionSuccessful = false;
-        try {
-            isConnectionSuccessful = await useConnection(async (connection) => {
-                if (connection) {
-                    await this.setState("info.connection", true, true);
-                    return true;
-                }
-                this.log.error("Connection failed");
-                return false;
-            });
-        } catch (e) {
-            console.error(e);
-        }
+        const isConnectionSuccessful = await useConnection(async (connection) => {
+            if (connection) {
+                await this.setState("info.connection", true, true);
+                return true;
+            }
+            this.log.error("Connection failed");
+            return false;
+        });
 
         if (!isConnectionSuccessful) {
             return;
         }
 
         await setTimeZone(this.config.timeZone);
+        await initTableSizes(this.config.tableSizeCron);
 
         const tableObject = addParamsToTableItem(this.config.table);
 
@@ -150,27 +150,6 @@ class SqlDataShifter extends utils.Adapter {
             this.scheduleJob.push(job);
         }
 
-        // Initialize your adapter here
-
-        // Reset the connection indicator during startup
-
-        /*
-		For every state in the system there has to be also an object of type state
-		Here a simple template for a boolean variable named "testVariable"
-		Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-		*/
-        // await this.setObjectNotExistsAsync("testVariable", {
-        //     type: "state",
-        //     common: {
-        //         name: "testVariable",
-        //         type: "boolean",
-        //         role: "indicator",
-        //         read: true,
-        //         write: true,
-        //     },
-        //     native: {},
-        // });
-
         /*
 			setState examples
 			you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
@@ -201,7 +180,7 @@ class SqlDataShifter extends utils.Adapter {
     private onUnload(callback: () => void): void {
         try {
             this.scheduleJob.forEach((job) => job.cancel());
-
+            tableSizeCron.cancel();
             callback();
         } catch (e) {
             console.error(e);

@@ -45,3 +45,7 @@ export const roundValue = <T>(entry: TableItem, val?: T): T | undefined => {
     }
     return Number(val.toFixed(entry.round)) as T;
 };
+
+export const toJSON = (val: object): string => {
+    return JSON.stringify(val, null, 2);
+};

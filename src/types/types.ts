@@ -19,3 +19,8 @@ export interface DatapointsTable {
     name: string;
     type: number;
 }
+
+export interface TableSize {
+    table: string;
+    "size_(MB)": number;
+}

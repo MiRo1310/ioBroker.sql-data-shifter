@@ -28,22 +28,18 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var connection_exports = {};
 __export(connection_exports, {
-  setDBConfig: () => setDBConfig,
   useConnection: () => useConnection
 });
 module.exports = __toCommonJS(connection_exports);
 var import_promise = __toESM(require("mysql2/promise"));
-let dbConfig = {};
-function setDBConfig(config) {
-  dbConfig = config;
-}
+var import_main = require("./main");
 async function useConnection(cb) {
   let connection;
   try {
-    connection = await import_promise.default.createConnection(dbConfig);
+    connection = await import_promise.default.createConnection(import_main.dbConfig);
     return await cb(connection);
   } catch (err) {
-    console.error(err);
+    import_main._this.log.error(`Error connection: ${JSON.stringify(err)}`);
     throw new Error("Error with database operation");
   } finally {
     if (connection) {
@@ -53,7 +49,6 @@ async function useConnection(cb) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  setDBConfig,
   useConnection
 });
 //# sourceMappingURL=connection.js.map

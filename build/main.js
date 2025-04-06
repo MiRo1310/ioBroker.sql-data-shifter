@@ -114,9 +114,6 @@ class SqlDataShifter extends utils.Adapter {
           entry.oldTimestamp = date;
           const result = rows;
           if (result.length === 0) {
-            if (entry.writeZero) {
-              await (0, import_querys.saveData)(entry, date, 0);
-            }
             this.log.debug(`No data found for ${entry.id} in ${entry.tableFrom}`);
             return;
           }

@@ -71,7 +71,7 @@ export const setTimeZone = async (timeZone?: string): Promise<void> => {
     }
     return await useConnection(async (connection) => {
         const query = `SET time_zone = ?`;
-        await connection.query(query, [timeZone]);
+        await connection.query(query, timeZone);
     });
 };
 

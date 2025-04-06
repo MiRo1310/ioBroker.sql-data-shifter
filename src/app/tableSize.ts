@@ -18,7 +18,7 @@ const getTableSizes = async (): Promise<TableSize[]> => {
     return tableSizes;
 };
 
-export let tableSizeCron: Job;
+export let tableSizeCron: Job | undefined = undefined;
 export const initTableSizes = async (cron: string): Promise<void> => {
     if (cron === "0") {
         return;
@@ -40,7 +40,7 @@ async function setTableSize(init?: boolean): Promise<void> {
 
     for (const tableSize of tableSizes) {
         checkSizes(tableSize);
-        await _this.setState(`${datapoints.tableSizeFolder}.${tableSize.table}`, tableSize["size_(MB)"], true);
+        await _this.setState(`${datapoints.tableSizeFolder}.${tableSize.table}`, Number(tableSize["size_(MB)"]), true);
     }
 }
 

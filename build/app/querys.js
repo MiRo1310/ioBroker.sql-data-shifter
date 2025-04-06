@@ -91,7 +91,7 @@ const setTimeZone = async (timeZone) => {
   }
   return await (0, import_connection.useConnection)(async (connection) => {
     const query = `SET time_zone = ?`;
-    await connection.query(query, [timeZone]);
+    await connection.query(query, timeZone);
   });
 };
 const getTableSize = async (database, table) => {

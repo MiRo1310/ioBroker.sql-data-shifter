@@ -49,15 +49,21 @@ class SqlDataShifter extends utils.Adapter {
         dbConfig.user = user;
         dbConfig.password = password;
         dbConfig.database = database;
-
-        const isConnectionSuccessful = await useConnection(async (connection) => {
-            if (connection) {
-                await this.setState("info.connection", true, true);
-                return true;
-            }
-            this.log.error("Connection failed");
-            return false;
-        });
+        let isConnectionSuccessful = false;
+        try {
+            isConnectionSuccessful = await useConnection(async (connection) => {
+                if (connection) {
+                    await this.setState("info.connection", true, true);
+                    return true;
+                }
+                this.log.error("Connection failed");
+                return false;
+            });
+        } catch (e) {
+            this.log.error(`Connection failed: ${JSON.stringify(e)}`);
+            await this.setState("info.connection", false, true);
+            return;
+        }
 
         if (!isConnectionSuccessful) {
             return;
@@ -180,7 +186,7 @@ class SqlDataShifter extends utils.Adapter {
     private onUnload(callback: () => void): void {
         try {
             this.scheduleJob.forEach((job) => job.cancel());
-            tableSizeCron.cancel();
+            tableSizeCron?.cancel();
             callback();
         } catch (e) {
             console.error(e);

@@ -47,7 +47,7 @@ const getTableSizes = async () => {
   );
   return tableSizes;
 };
-let tableSizeCron;
+let tableSizeCron = void 0;
 const initTableSizes = async (cron) => {
   if (cron === "0") {
     return;
@@ -65,7 +65,7 @@ async function setTableSize(init) {
   await import_main._this.setState(import_datapoints.datapoints.tableSize, (0, import_lib.toJSON)(tableSizes), true);
   for (const tableSize of tableSizes) {
     checkSizes(tableSize);
-    await import_main._this.setState(`${import_datapoints.datapoints.tableSizeFolder}.${tableSize.table}`, tableSize["size_(MB)"], true);
+    await import_main._this.setState(`${import_datapoints.datapoints.tableSizeFolder}.${tableSize.table}`, Number(tableSize["size_(MB)"]), true);
   }
 }
 function checkSizes(tableSize) {

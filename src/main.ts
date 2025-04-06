@@ -108,9 +108,6 @@ class SqlDataShifter extends utils.Adapter {
                     const result = rows as SqlIobrokerAdapterRow[];
 
                     if (result.length === 0) {
-                        if (entry.writeZero) {
-                            await saveData(entry, date, 0);
-                        }
                         this.log.debug(`No data found for ${entry.id} in ${entry.tableFrom}`);
                         return;
                     }

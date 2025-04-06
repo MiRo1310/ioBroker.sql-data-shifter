@@ -28,6 +28,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var main_exports = {};
 __export(main_exports, {
+  _this: () => _this,
   dbConfig: () => dbConfig
 });
 module.exports = __toCommonJS(main_exports);
@@ -37,7 +38,9 @@ var import_lib = require("./lib/lib");
 var import_node_schedule = __toESM(require("node-schedule"));
 var import_querys = require("./app/querys");
 var import_getTablesForFrontendUsage = require("./app/getTablesForFrontendUsage");
+var import_tableSize = require("./app/tableSize");
 const dbConfig = {};
+let _this;
 class SqlDataShifter extends utils.Adapter {
   scheduleJob;
   constructor(options = {}) {
@@ -54,30 +57,28 @@ class SqlDataShifter extends utils.Adapter {
    * Is called when databases are connected and adapter received configuration.
    */
   async onReady() {
-    if (!this.config.user || !this.config.password || !this.config.database) {
+    const { user, database, password, ip } = this.config;
+    if (!user || !password || !database) {
       return;
     }
-    dbConfig.host = this.config.ip;
-    dbConfig.user = this.config.user;
-    dbConfig.password = this.config.password;
-    dbConfig.database = this.config.database;
-    let isConnectionSuccessful = false;
-    try {
-      isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
-        if (connection) {
-          await this.setState("info.connection", true, true);
-          return true;
-        }
-        this.log.error("Connection failed");
-        return false;
-      });
-    } catch (e) {
-      console.error(e);
-    }
+    _this = this;
+    dbConfig.host = ip;
+    dbConfig.user = user;
+    dbConfig.password = password;
+    dbConfig.database = database;
+    const isConnectionSuccessful = await (0, import_connection.useConnection)(async (connection) => {
+      if (connection) {
+        await this.setState("info.connection", true, true);
+        return true;
+      }
+      this.log.error("Connection failed");
+      return false;
+    });
     if (!isConnectionSuccessful) {
       return;
     }
     await (0, import_querys.setTimeZone)(this.config.timeZone);
+    await (0, import_tableSize.initTableSizes)(this.config.tableSizeCron);
     const tableObject = (0, import_lib.addParamsToTableItem)(this.config.table);
     for (const entry of tableObject) {
       if (!entry.active) {
@@ -156,6 +157,7 @@ class SqlDataShifter extends utils.Adapter {
   onUnload(callback) {
     try {
       this.scheduleJob.forEach((job) => job.cancel());
+      import_tableSize.tableSizeCron.cancel();
       callback();
     } catch (e) {
       console.error(e);
@@ -197,7 +199,6 @@ class SqlDataShifter extends utils.Adapter {
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
   async onMessage(obj) {
-    console.log(JSON.stringify(obj));
     switch (obj.command) {
       case "id": {
         const result = await (0, import_getTablesForFrontendUsage.getDatapointsTable)();
@@ -226,6 +227,7 @@ if (require.main !== module) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  _this,
   dbConfig
 });
 //# sourceMappingURL=main.js.map

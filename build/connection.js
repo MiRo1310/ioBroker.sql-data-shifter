@@ -39,7 +39,7 @@ async function useConnection(cb) {
     connection = await import_promise.default.createConnection(import_main.dbConfig);
     return await cb(connection);
   } catch (err) {
-    console.error(err);
+    import_main._this.log.error(`Error connection: ${JSON.stringify(err)}`);
     throw new Error("Error with database operation");
   } finally {
     if (connection) {

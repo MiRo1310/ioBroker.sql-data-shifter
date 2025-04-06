@@ -23,7 +23,8 @@ __export(lib_exports, {
   differenceResult: () => differenceResult,
   isDefined: () => isDefined,
   roundValue: () => roundValue,
-  sumResult: () => sumResult
+  sumResult: () => sumResult,
+  toJSON: () => toJSON
 });
 module.exports = __toCommonJS(lib_exports);
 function calculateAverage(rows) {
@@ -61,6 +62,9 @@ const roundValue = (entry, val) => {
   }
   return Number(val.toFixed(entry.round));
 };
+const toJSON = (val) => {
+  return JSON.stringify(val, null, 2);
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   addParamsToTableItem,
@@ -68,6 +72,7 @@ const roundValue = (entry, val) => {
   differenceResult,
   isDefined,
   roundValue,
-  sumResult
+  sumResult,
+  toJSON
 });
 //# sourceMappingURL=lib.js.map

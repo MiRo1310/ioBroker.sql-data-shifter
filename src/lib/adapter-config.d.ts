@@ -10,6 +10,10 @@ declare global {
             database: string;
             table: TableItem[]
             timeZone?: string
+            tableSizeCron: string
+            info: boolean
+            warning: number
+            error: number
         }
     }
 }

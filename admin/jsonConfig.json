@@ -134,6 +134,91 @@
             "de": "0 = Deaktiviert - Beispiel: +00:00",
             "en": "0 = Disabled - Example: +00:00"
           }
+        },
+        "tableSizeCron": {
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "type": "cron",
+          "complex": true,
+          "width": "10%",
+          "min": 30,
+          "validator": "data.tableSizeCron.length",
+          "validatorErrorText": {
+            "de": "Bitte legen Sie einen Zeitplan fest",
+            "en": "Please set a schedule"
+          },
+          "newLine": true,
+          "validatorNoSaveOnError": true,
+          "label": {
+            "en": "Schedule for updating the table size (MB)",
+            "de": "Zeitplan fürs Updaten der Tabellengröße (MB)"
+          },
+          "tooltip": {
+            "en": "Cron expression for the schedule",
+            "de": "Cron-Ausdruck für den Zeitplan"
+          },
+          "attr": "tableSizeCron",
+          "filter": false,
+          "sort": true,
+          "default": "0",
+          "help": {
+            "en": "0 = Deactivate",
+            "de": "0 = Deaktiviert"
+          }
+        },
+        "head3": {
+          "type": "header",
+          "size": 3,
+          "text": {
+            "de": "Einstellungen für Warnungen",
+            "en": "Settings for warnings"
+          }
+        },
+        "info": {
+          "type": "checkbox",
+          "title": {
+            "en": "Delete",
+            "de": "Löschen"
+          },
+          "attr": "info",
+          "default": true,
+          "tooltip": {
+            "en": "Delete the old data",
+            "de": "Alte Daten löschen"
+          }
+        },
+        "warning": {
+          "type": "number",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "label": {
+            "de": "Warnung ab (MB)",
+            "en": "Warning from (MB)"
+          },
+          "default": 0,
+          "newLine": false,
+          "help": {
+            "de": "0 = Deaktiviert",
+            "en": "0 = Disabled"
+          }
+        },
+        "error": {
+          "type": "number",
+          "lg": 2,
+          "md": 6,
+          "sm": 12,
+          "label": {
+            "de": "Error ab (MB)",
+            "en": "Error from (MB)"
+          },
+          "default": 0,
+          "newLine": true,
+          "help": {
+            "de": "0 = Deaktiviert",
+            "en": "0 = Disabled"
+          }
         }
       }
     },
@@ -158,7 +243,7 @@
               "min": 30,
               "validator": "data.schedule.length",
               "validatorErrorText": {
-                "de": "Bitte legen Sie einen Zeitplan ein",
+                "de": "Bitte legen Sie einen Zeitplan fest",
                 "en": "Please set a schedule"
               },
               "validatorNoSaveOnError": true,

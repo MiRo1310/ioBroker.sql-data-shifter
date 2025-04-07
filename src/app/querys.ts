@@ -1,7 +1,7 @@
-import { useConnection } from '../connection';
-import type { TableItem } from '../lib/adapter-config';
-import type { SqlIobrokerAdapterRow, TableSize } from '../types/types';
-import { getRetentionTime, isDefined, roundValue } from '../lib/lib';
+import { useConnection } from "../connection";
+import type { JsonConfigTable } from "../lib/adapter-config";
+import type { SqlIobrokerAdapterRow, TableSize } from "../types/types";
+import { isDefined, roundValue, toLocalTime , getRetentionTime} from "../lib/lib";
 
 export async function createNewTable(table: string): Promise<void> {
     return useConnection(async connection => {
@@ -18,14 +18,12 @@ export async function createNewTable(table: string): Promise<void> {
                     VARCHAR(50),
                 createdAt
                     TIMESTAMP
-                    DEFAULT
-                        CURRENT_TIMESTAMP
             )`;
         await connection.query(query);
     });
 }
 
-export const removeOldData = async (entry: TableItem): Promise<void> => {
+export const removeOldData = async (entry: JsonConfigTable): Promise<void> => {
     const timestamp = getRetentionTime(entry);
     if (timestamp === 0) {
         return; // No retention, nothing to delete
@@ -38,30 +36,52 @@ export const removeOldData = async (entry: TableItem): Promise<void> => {
     });
 };
 
-export const saveData = async (entry: TableItem, date: number, val: number): Promise<void> => {
+export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
     return useConnection(async connection => {
         const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
+export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
+    // TODO zusammenfassen
+    return useConnection(async (connection) => {
+        const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit, createdAt)
+                           VALUES (?, ?, ?, ?, ?)`;
         if (!isDefined(val)) {
             return;
         }
-        await connection.execute(saveQuery, [entry.id, date, roundValue(entry, val), entry.unit ?? '']);
+
+        await connection.execute(saveQuery, [
+            entry.id,
+            date,
+            roundValue(entry, val),
+            entry.unit ?? "",
+            toLocalTime(date),
+        ]);
     });
 };
 
-export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterRow[]): Promise<void> => {
-    return useConnection(async connection => {
-        const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
-                           VALUES (?, ?, ?, ?)`;
+export const saveDataArray = async (
+    jsonConfigTable: JsonConfigTable,
+    table: SqlIobrokerAdapterRow[],
+): Promise<void> => {
+    const { tableTo, writeZero, unit, id } = jsonConfigTable;
+    return useConnection(async (connection) => {
+        const saveQuery = `INSERT INTO ${tableTo} (id, ts, val, unit, createdAt)
+                           VALUES (?, ?, ?, ?, ?)`;
 
         for (const row of table) {
             if (!isDefined(row.val)) {
                 continue;
             }
-            if (row.val === 0 && !entry.writeZero) {
+            if (row.val === 0 && !writeZero) {
                 continue;
             }
-            await connection.execute(saveQuery, [entry.id, row.ts, roundValue(entry, row.val), entry.unit ?? '']);
+            await connection.execute(saveQuery, [
+                id,
+                row.ts,
+                roundValue(jsonConfigTable, row.val),
+                unit ?? "",
+                toLocalTime(row.ts),
+            ]);
         }
     });
 };

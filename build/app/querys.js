@@ -43,38 +43,34 @@ async function createNewTable(table) {
                     VARCHAR(50),
                 createdAt
                     TIMESTAMP
-                    DEFAULT
-                        CURRENT_TIMESTAMP
             )`;
     await connection.query(query);
   });
 }
-const saveData = async (entry, date, val) => {
+const saveDataArray = async (jsonConfigTable, table) => {
+  const { tableTo, writeZero, unit, id } = jsonConfigTable;
   return (0, import_connection.useConnection)(async (connection) => {
-    var _a;
-    const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
-                           VALUES (?, ?, ?, ?)`;
-    if (!(0, import_lib.isDefined)(val)) {
-      return;
-    }
-    await connection.execute(saveQuery, [entry.id, date, (0, import_lib.roundValue)(entry, val), (_a = entry.unit) != null ? _a : ""]);
-  });
-};
-const saveDataArray = async (entry, table) => {
-  return (0, import_connection.useConnection)(async (connection) => {
-    var _a;
-    const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
-                           VALUES (?, ?, ?, ?)`;
+    const saveQuery = `INSERT INTO ${tableTo} (id, ts, val, unit, createdAt)
+                           VALUES (?, ?, ?, ?, ?)`;
     for (const row of table) {
       if (!(0, import_lib.isDefined)(row.val)) {
         continue;
       }
-      if (row.val === 0 && !entry.writeZero) {
+      if (row.val === 0 && !writeZero) {
         continue;
       }
-      await connection.execute(saveQuery, [entry.id, row.ts, (0, import_lib.roundValue)(entry, row.val), (_a = entry.unit) != null ? _a : ""]);
+      await connection.execute(saveQuery, [
+        id,
+        row.ts,
+        (0, import_lib.roundValue)(jsonConfigTable, row.val),
+        unit != null ? unit : "",
+        (0, import_lib.toLocalTime)(row.ts)
+      ]);
     }
   });
+};
+const saveData = async (entry, date, val) => {
+  await saveDataArray(entry, [{ ts: date, val, id: Number(entry.id) }]);
 };
 const getAllTables = async () => {
   return (0, import_connection.useConnection)(async (connection) => {

@@ -1,7 +1,7 @@
 import { useConnection } from "../connection";
-import type { TableItem } from "../lib/adapter-config";
+import type { JsonConfigTable } from "../lib/adapter-config";
 import type { SqlIobrokerAdapterRow, TableSize } from "../types/types";
-import { isDefined, roundValue } from "../lib/lib";
+import { isDefined, roundValue, toLocalTime } from "../lib/lib";
 
 export async function createNewTable(table: string): Promise<void> {
     return useConnection(async (connection) => {
@@ -18,39 +18,40 @@ export async function createNewTable(table: string): Promise<void> {
                     VARCHAR(50),
                 createdAt
                     TIMESTAMP
-                    DEFAULT
-                        CURRENT_TIMESTAMP
             )`;
         await connection.query(query);
     });
 }
 
-export const saveData = async (entry: TableItem, date: number, val: number): Promise<void> => {
+export const saveDataArray = async (
+    jsonConfigTable: JsonConfigTable,
+    table: Omit<SqlIobrokerAdapterRow, "ack" | "q" | "_from">[],
+): Promise<void> => {
+    const { tableTo, writeZero, unit, id } = jsonConfigTable;
     return useConnection(async (connection) => {
-        const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
-                           VALUES (?, ?, ?, ?)`;
-        if (!isDefined(val)) {
-            return;
-        }
-        await connection.execute(saveQuery, [entry.id, date, roundValue(entry, val), entry.unit ?? ""]);
-    });
-};
-
-export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterRow[]): Promise<void> => {
-    return useConnection(async (connection) => {
-        const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
-                           VALUES (?, ?, ?, ?)`;
+        const saveQuery = `INSERT INTO ${tableTo} (id, ts, val, unit, createdAt)
+                           VALUES (?, ?, ?, ?, ?)`;
 
         for (const row of table) {
             if (!isDefined(row.val)) {
                 continue;
             }
-            if (row.val === 0 && !entry.writeZero) {
+            if (row.val === 0 && !writeZero) {
                 continue;
             }
-            await connection.execute(saveQuery, [entry.id, row.ts, roundValue(entry, row.val), entry.unit ?? ""]);
+            await connection.execute(saveQuery, [
+                id,
+                row.ts,
+                roundValue(jsonConfigTable, row.val),
+                unit ?? "",
+                toLocalTime(row.ts),
+            ]);
         }
     });
+};
+
+export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
+    await saveDataArray(entry, [{ ts: date, val, id: Number(entry.id) }]);
 };
 
 export const getAllTables = async (): Promise<string[]> => {

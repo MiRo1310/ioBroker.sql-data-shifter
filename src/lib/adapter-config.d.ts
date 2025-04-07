@@ -8,7 +8,7 @@ declare global {
             user: string;
             ip: string;
             database: string;
-            table: TableItem[]
+            table: JsonConfigTable[]
             timeZone?: string
             tableSizeCron: string
             info: boolean
@@ -18,7 +18,7 @@ declare global {
     }
 }
 
-export interface TableItem {
+export interface JsonConfigTable {
     time: number; // Sekunden
     schedule: string;
     id: string;

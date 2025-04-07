@@ -50,7 +50,7 @@ export const toJSON = (val: object): string => {
     return JSON.stringify(val, null, 2);
 };
 
-export const toLocalTime = (date: Date): string => new Date(date).toLocaleDateString();
+export const toLocalTime = (date: number): string => new Date(date).toLocaleDateString();
 
 export const getRetentionTime = (entry: TableItem): number => {
     if (entry.retentionValue === 0) {

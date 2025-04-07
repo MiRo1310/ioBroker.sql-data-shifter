@@ -61,7 +61,7 @@ export const saveData = async (entry: JsonConfigTable, date: number, val: number
 
 export const saveDataArray = async (
     jsonConfigTable: JsonConfigTable,
-    table: SqlIobrokerAdapterRow[],
+    table: Omit<SqlIobrokerAdapterRow, "ack" | "q" | "_from">[],
 ): Promise<void> => {
     const { tableTo, writeZero, unit, id } = jsonConfigTable;
     return useConnection(async (connection) => {
@@ -84,6 +84,10 @@ export const saveDataArray = async (
             ]);
         }
     });
+};
+
+export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
+    await saveDataArray(entry, [{ ts: date, val, id: Number(entry.id) }]);
 };
 
 export const getAllTables = async (): Promise<string[]> => {

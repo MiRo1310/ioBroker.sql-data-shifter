@@ -503,6 +503,76 @@
                 "en": "Activate the schedule",
                 "de": "Aktiviere den Zeitplan"
               }
+            },
+            {
+              "type": "number",
+              "title": {
+                "en": "Retention time",
+                "de": "Aufbewahrungszeit"
+              },
+              "attr": "retentionValue",
+              "filter": false,
+              "sort": true,
+              "default": 0,
+              "tooltip": {
+                "en": "Retention time for the data",
+                "de": "Aufbewahrungszeit für die Daten"
+              }
+            },
+            {
+              "type": "select",
+              "title": {
+                "en": "Retention time unit",
+                "de": "Aufbewahrungszeit Einheit"
+              },
+              "validator": "!data.retentionValue || (data.retentionValue && data.retentionUnit)",
+              "validatorErrorText": {
+                "de": "Bitte wähle aus",
+                "en": "Please select"
+              },
+              "validatorNoSaveOnError": true,
+              "attr": "retentionUnit",
+              "tooltip": {
+                "en": "Retention time unit for the data",
+                "de": "Aufbewahrungszeiteinheit für die Daten"
+              },
+              "options": [
+                {
+                  "value": "hours",
+                  "label": {
+                    "en": "Hours",
+                    "de": "Stunden"
+                  }
+                },
+                {
+                  "value": "days",
+                  "label": {
+                    "en": "Days",
+                    "de": "Tage"
+                  }
+                },
+                {
+                  "value": "weeks",
+                  "label": {
+                    "en": "Weeks",
+                    "de": "Wochen"
+                  }
+                },
+                {
+                  "value": "months",
+                  "label": {
+                    "en": "Months",
+                    "de": "Monate"
+                  }
+                },
+                {
+                  "value": "years",
+                  "label": {
+                    "en": "Years",
+                    "de": "Jahre"
+                  }
+                }
+              ]
             }
           ]
         },

@@ -123,6 +123,7 @@ class SqlDataShifter extends utils.Adapter {
               return;
             }
             await (0, import_querys.saveData)(entry, date, sum);
+            await (0, import_querys.removeOldData)(entry);
           }
           if (entry.operation === "dif") {
             const sum = (0, import_lib.differenceResult)(result) * entry.factor;
@@ -130,6 +131,7 @@ class SqlDataShifter extends utils.Adapter {
               return;
             }
             await (0, import_querys.saveData)(entry, date, sum);
+            await (0, import_querys.removeOldData)(entry);
           }
           if (entry.operation === "avg") {
             const average = (0, import_lib.calculateAverage)(result) * entry.factor;
@@ -137,9 +139,11 @@ class SqlDataShifter extends utils.Adapter {
               return;
             }
             await (0, import_querys.saveData)(entry, date, average);
+            await (0, import_querys.removeOldData)(entry);
           }
           if (entry.operation === "all") {
             await (0, import_querys.saveDataArray)(entry, result);
+            await (0, import_querys.removeOldData)(entry);
           }
           if (entry.delete) {
             const deleteQuery = `DELETE
@@ -169,40 +173,6 @@ class SqlDataShifter extends utils.Adapter {
       callback();
     }
   }
-  // If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-  // You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-  // /**
-  //  * Is called if a subscribed object changes
-  //  */
-  // private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
-  //     if (obj) {
-  //         // The object was changed
-  //         this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-  //     } else {
-  //         // The object was deleted
-  //         this.log.info(`object ${id} deleted`);
-  //     }
-  // }
-  // /**
-  //  * Is called if a subscribed state changes
-  //  *
-  //  * @param id
-  //  * @param state
-  //  */
-  // private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
-  //     if (state) {
-  //         // The state was changed
-  //         this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-  //     } else {
-  //         // The state was deleted
-  //         this.log.info(`state ${id} deleted`);
-  //     }
-  // }
-  // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-  // /**
-  //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-  //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-  //  */
   async onMessage(obj) {
     switch (obj.command) {
       case "id": {

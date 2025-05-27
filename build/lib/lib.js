@@ -21,6 +21,7 @@ __export(lib_exports, {
   addParamsToTableItem: () => addParamsToTableItem,
   calculateAverage: () => calculateAverage,
   differenceResult: () => differenceResult,
+  getRetentionTime: () => getRetentionTime,
   isDefined: () => isDefined,
   roundValue: () => roundValue,
   sumResult: () => sumResult,
@@ -65,11 +66,34 @@ const roundValue = (entry, val) => {
 const toJSON = (val) => {
   return JSON.stringify(val, null, 2);
 };
+const getRetentionTime = (entry) => {
+  if (entry.retentionValue === 0) {
+    return 0;
+  }
+  const now = Date.now();
+  switch (entry.retentionUnit) {
+    case "hours":
+      return now - entry.retentionValue * 60 * 60 * 1e3;
+    case "days":
+      return now - entry.retentionValue * 24 * 60 * 60 * 1e3;
+    case "weeks":
+      return now - entry.retentionValue * 7 * 24 * 60 * 60 * 1e3;
+    case "months":
+      return now - entry.retentionValue * 30 * 24 * 60 * 60 * 1e3;
+    // Approximation
+    case "years":
+      return now - entry.retentionValue * 365 * 24 * 60 * 60 * 1e3;
+    // Approximation
+    default:
+      return now;
+  }
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   addParamsToTableItem,
   calculateAverage,
   differenceResult,
+  getRetentionTime,
   isDefined,
   roundValue,
   sumResult,

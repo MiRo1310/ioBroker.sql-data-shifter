@@ -1,4 +1,4 @@
 export const datapoints = {
-    tableSizeFolder: "Table-Size",
+    tableSizeFolder: 'Table-Size',
     tableSize: `Table-Size.tableSizeJson`,
 };

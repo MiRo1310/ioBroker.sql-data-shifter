@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../../src/app/datapoints.ts"],
-  "sourcesContent": ["export const datapoints = {\n    tableSizeFolder: \"Table-Size\",\n    tableSize: `Table-Size.tableSizeJson`,\n};\n"],
+  "sourcesContent": ["export const datapoints = {\n    tableSizeFolder: 'Table-Size',\n    tableSize: `Table-Size.tableSizeJson`,\n};\n"],
   "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAO,MAAM,aAAa;AAAA,EACtB,iBAAiB;AAAA,EACjB,WAAW;AACf;",
   "names": []
 }

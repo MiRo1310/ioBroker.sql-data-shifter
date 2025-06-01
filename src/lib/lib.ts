@@ -1,5 +1,5 @@
-import type { SqlIobrokerAdapterRow } from "../types/types";
-import type { JsonConfigTable } from "./adapter-config";
+import type { SqlIobrokerAdapterRow } from '../types/types';
+import type { JsonConfigTable } from './adapter-config';
 
 export function calculateAverage(rows: SqlIobrokerAdapterRow[]): number {
     let sum = 0;
@@ -25,8 +25,12 @@ export function differenceResult(rows: SqlIobrokerAdapterRow[]): number {
     return Number(lastRow.val) - Number(firstRow.val);
 }
 
-export const addParamsToTableItem = (table: JsonConfigTable[]): (JsonConfigTable & { oldTimestamp?: number })[] => {
-    const tableWithMoreParams: (JsonConfigTable & { oldTimestamp?: number })[] = table;
+interface JsonConfigTableWithOldTimestamp extends JsonConfigTable {
+    oldTimestamp?: number;
+}
+
+export const addParamsToTableItem = (table: JsonConfigTable[]): JsonConfigTableWithOldTimestamp[] => {
+    const tableWithMoreParams: JsonConfigTableWithOldTimestamp[] = table;
 
     return tableWithMoreParams.map(item => {
         return { ...item, oldTimestamp: 0 };
@@ -40,7 +44,7 @@ export const isDefined = (
 };
 
 export const roundValue = <T>(entry: JsonConfigTable, val?: T): T | undefined => {
-    if (typeof val === "string" || entry.round === 0 || typeof val !== "number") {
+    if (typeof val === 'string' || entry.round === 0 || typeof val !== 'number') {
         return val;
     }
     return Number(val.toFixed(entry.round)) as T;
@@ -52,7 +56,7 @@ export const toJSON = (val: object): string => {
 
 export const toLocalTime = (date: number): string => new Date(date).toLocaleDateString();
 
-export const getRetentionTime = (entry: TableItem): number => {
+export const getRetentionTime = (entry: JsonConfigTable): number => {
     if (entry.retentionValue === 0) {
         return 0;
     }

@@ -38,11 +38,6 @@ export const removeOldData = async (entry: JsonConfigTable): Promise<void> => {
 
 export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
     return useConnection(async connection => {
-        const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
-                           VALUES (?, ?, ?, ?)`;
-export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
-    // TODO zusammenfassen
-    return useConnection(async (connection) => {
         const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit, createdAt)
                            VALUES (?, ?, ?, ?, ?)`;
         if (!isDefined(val)) {
@@ -53,7 +48,7 @@ export const saveData = async (entry: JsonConfigTable, date: number, val: number
             entry.id,
             date,
             roundValue(entry, val),
-            entry.unit ?? "",
+            entry.unit ?? '',
             toLocalTime(date),
         ]);
     });
@@ -84,10 +79,6 @@ export const saveDataArray = async (
             ]);
         }
     });
-};
-
-export const saveData = async (entry: JsonConfigTable, date: number, val: number): Promise<void> => {
-    await saveDataArray(entry, [{ ts: date, val, id: Number(entry.id) }]);
 };
 
 export const getAllTables = async (): Promise<string[]> => {

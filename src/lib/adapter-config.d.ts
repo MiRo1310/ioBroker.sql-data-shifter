@@ -8,17 +8,17 @@ declare global {
             user: string;
             ip: string;
             database: string;
-            table: TableItem[];
-            timeZone?: string;
-            tableSizeCron: string;
-            info: boolean;
-            warning: number;
-            error: number;
+            table: JsonConfigTable[]
+            timeZone?: string
+            tableSizeCron: string
+            info: boolean
+            warning: number
+            error: number
         }
     }
 }
 
-export interface TableItem {
+export interface JsonConfigTable {
     time: number; // Seconds
     schedule: string;
     id: string;

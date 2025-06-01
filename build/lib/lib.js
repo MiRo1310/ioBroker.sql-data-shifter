@@ -25,7 +25,8 @@ __export(lib_exports, {
   isDefined: () => isDefined,
   roundValue: () => roundValue,
   sumResult: () => sumResult,
-  toJSON: () => toJSON
+  toJSON: () => toJSON,
+  toLocalTime: () => toLocalTime
 });
 module.exports = __toCommonJS(lib_exports);
 function calculateAverage(rows) {
@@ -66,6 +67,7 @@ const roundValue = (entry, val) => {
 const toJSON = (val) => {
   return JSON.stringify(val, null, 2);
 };
+const toLocalTime = (date) => new Date(date).toLocaleDateString();
 const getRetentionTime = (entry) => {
   if (entry.retentionValue === 0) {
     return 0;
@@ -97,6 +99,7 @@ const getRetentionTime = (entry) => {
   isDefined,
   roundValue,
   sumResult,
-  toJSON
+  toJSON,
+  toLocalTime
 });
 //# sourceMappingURL=lib.js.map

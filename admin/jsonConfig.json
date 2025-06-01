@@ -398,8 +398,8 @@
               "default": 0,
               "validator": "data.round % 1 == 0",
               "validatorErrorText": {
-                "de": "",
-                "en": ""
+                "de": "Bitte geben Sie eine ganze Zahl ein",
+                "en": "Please enter a whole number"
               },
               "validatorNoSaveOnError": true,
               "tooltip": {

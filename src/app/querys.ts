@@ -1,7 +1,7 @@
-import { useConnection } from "../connection";
-import type { JsonConfigTable } from "../lib/adapter-config";
-import type { SqlIobrokerAdapterRow, TableSize } from "../types/types";
-import { isDefined, roundValue, toLocalTime , getRetentionTime} from "../lib/lib";
+import { useConnection } from '../connection';
+import type { JsonConfigTable } from '../lib/adapter-config';
+import type { SqlIobrokerAdapterRow, TableSize } from '../types/types';
+import { isDefined, roundValue, toLocalTime, getRetentionTime } from '../lib/lib';
 
 export async function createNewTable(table: string): Promise<void> {
     return useConnection(async connection => {
@@ -61,10 +61,10 @@ export const saveData = async (entry: JsonConfigTable, date: number, val: number
 
 export const saveDataArray = async (
     jsonConfigTable: JsonConfigTable,
-    table: Omit<SqlIobrokerAdapterRow, "ack" | "q" | "_from">[],
+    table: Omit<SqlIobrokerAdapterRow, 'ack' | 'q' | '_from'>[],
 ): Promise<void> => {
     const { tableTo, writeZero, unit, id } = jsonConfigTable;
-    return useConnection(async (connection) => {
+    return useConnection(async connection => {
         const saveQuery = `INSERT INTO ${tableTo} (id, ts, val, unit, createdAt)
                            VALUES (?, ?, ?, ?, ?)`;
 
@@ -79,7 +79,7 @@ export const saveDataArray = async (
                 id,
                 row.ts,
                 roundValue(jsonConfigTable, row.val),
-                unit ?? "",
+                unit ?? '',
                 toLocalTime(row.ts),
             ]);
         }

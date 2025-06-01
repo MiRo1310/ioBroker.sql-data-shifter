@@ -67,7 +67,11 @@ const roundValue = (entry, val) => {
 const toJSON = (val) => {
   return JSON.stringify(val, null, 2);
 };
-const toLocalTime = (date) => new Date(date).toLocaleDateString();
+function toLocalTime(ts) {
+  const date = new Date(ts);
+  const pad = (n) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
 const getRetentionTime = (entry) => {
   if (entry.retentionValue === 0) {
     return 0;

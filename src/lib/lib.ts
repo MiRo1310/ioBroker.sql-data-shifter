@@ -54,7 +54,11 @@ export const toJSON = (val: object): string => {
     return JSON.stringify(val, null, 2);
 };
 
-export const toLocalTime = (date: number): string => new Date(date).toLocaleDateString();
+export function toLocalTime(ts: number): string {
+    const date = new Date(ts);
+    const pad = (n: number): string => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
 
 export const getRetentionTime = (entry: JsonConfigTable): number => {
     if (entry.retentionValue === 0) {

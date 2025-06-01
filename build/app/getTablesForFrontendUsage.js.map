@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../../src/app/getTablesForFrontendUsage.ts"],
-  "sourcesContent": ["import { useConnection } from \"../connection\";\r\nimport type { DatapointsTable } from \"../types/types\";\r\n\r\nexport const getDatapointsTable = async (): Promise<DatapointsTable[]> => {\r\n    return await useConnection(async (connection) => {\r\n        const query = `SELECT *\r\n                       FROM datapoints`;\r\n        const [rows] = await connection.query(query);\r\n        return rows as DatapointsTable[];\r\n    });\r\n};\r\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,wBAA8B;AAGvB,MAAM,qBAAqB,YAAwC;AACtE,SAAO,UAAM,iCAAc,OAAO,eAAe;AAC7C,UAAM,QAAQ;AAAA;AAEd,UAAM,CAAC,IAAI,IAAI,MAAM,WAAW,MAAM,KAAK;AAC3C,WAAO;AAAA,EACX,CAAC;AACL;",
+  "sourcesContent": ["import { useConnection } from '../connection';\nimport type { DatapointsTable } from '../types/types';\n\nexport const getDatapointsTable = async (): Promise<DatapointsTable[]> => {\n    return await useConnection(async connection => {\n        const query = `SELECT *\n                       FROM datapoints`;\n        const [rows] = await connection.query(query);\n        return rows as DatapointsTable[];\n    });\n};\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,wBAA8B;AAGvB,MAAM,qBAAqB,YAAwC;AACtE,SAAO,UAAM,iCAAc,OAAM,eAAc;AAC3C,UAAM,QAAQ;AAAA;AAEd,UAAM,CAAC,IAAI,IAAI,MAAM,WAAW,MAAM,KAAK;AAC3C,WAAO;AAAA,EACX,CAAC;AACL;",
   "names": []
 }

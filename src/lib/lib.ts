@@ -1,9 +1,9 @@
-import type { SqlIobrokerAdapterRow } from "../types/types";
-import type { TableItem } from "./adapter-config";
+import type { SqlIobrokerAdapterRow } from '../types/types';
+import type { TableItem } from './adapter-config';
 
 export function calculateAverage(rows: SqlIobrokerAdapterRow[]): number {
     let sum = 0;
-    rows.forEach((row) => {
+    rows.forEach(row => {
         sum += Number(row.val);
     });
     return sum / rows.length;
@@ -28,7 +28,7 @@ export function differenceResult(rows: SqlIobrokerAdapterRow[]): number {
 export const addParamsToTableItem = (table: TableItem[]): (TableItem & { oldTimestamp?: number })[] => {
     const tableWithMoreParams: (TableItem & { oldTimestamp?: number })[] = table;
 
-    return tableWithMoreParams.map((item) => {
+    return tableWithMoreParams.map(item => {
         return { ...item, oldTimestamp: 0 };
     });
 };
@@ -40,7 +40,7 @@ export const isDefined = (
 };
 
 export const roundValue = <T>(entry: TableItem, val?: T): T | undefined => {
-    if (typeof val === "string" || entry.round === 0 || typeof val !== "number") {
+    if (typeof val === 'string' || entry.round === 0 || typeof val !== 'number') {
         return val;
     }
     return Number(val.toFixed(entry.round)) as T;
@@ -48,4 +48,25 @@ export const roundValue = <T>(entry: TableItem, val?: T): T | undefined => {
 
 export const toJSON = (val: object): string => {
     return JSON.stringify(val, null, 2);
+};
+
+export const getRetentionTime = (entry: TableItem): number => {
+    if (entry.retentionValue === 0) {
+        return 0;
+    }
+    const now = Date.now();
+    switch (entry.retentionUnit) {
+        case 'hours':
+            return now - entry.retentionValue * 60 * 60 * 1000;
+        case 'days':
+            return now - entry.retentionValue * 24 * 60 * 60 * 1000;
+        case 'weeks':
+            return now - entry.retentionValue * 7 * 24 * 60 * 60 * 1000;
+        case 'months':
+            return now - entry.retentionValue * 30 * 24 * 60 * 60 * 1000; // Approximation
+        case 'years':
+            return now - entry.retentionValue * 365 * 24 * 60 * 60 * 1000; // Approximation
+        default:
+            return now;
+    }
 };

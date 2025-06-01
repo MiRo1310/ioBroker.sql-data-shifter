@@ -1,10 +1,10 @@
-import { useConnection } from "../connection";
-import type { TableItem } from "../lib/adapter-config";
-import type { SqlIobrokerAdapterRow, TableSize } from "../types/types";
-import { isDefined, roundValue } from "../lib/lib";
+import { useConnection } from '../connection';
+import type { TableItem } from '../lib/adapter-config';
+import type { SqlIobrokerAdapterRow, TableSize } from '../types/types';
+import { getRetentionTime, isDefined, roundValue } from '../lib/lib';
 
 export async function createNewTable(table: string): Promise<void> {
-    return useConnection(async (connection) => {
+    return useConnection(async connection => {
         const query = `
             CREATE TABLE IF NOT EXISTS ${table}
             (
@@ -25,19 +25,32 @@ export async function createNewTable(table: string): Promise<void> {
     });
 }
 
+export const removeOldData = async (entry: TableItem): Promise<void> => {
+    const timestamp = getRetentionTime(entry);
+    if (timestamp === 0) {
+        return; // No retention, nothing to delete
+    }
+    return useConnection(async connection => {
+        const deleteQuery = `DELETE
+                             FROM ${entry.tableTo}
+                             WHERE ts <= ?`;
+        await connection.execute(deleteQuery, [timestamp]);
+    });
+};
+
 export const saveData = async (entry: TableItem, date: number, val: number): Promise<void> => {
-    return useConnection(async (connection) => {
+    return useConnection(async connection => {
         const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
         if (!isDefined(val)) {
             return;
         }
-        await connection.execute(saveQuery, [entry.id, date, roundValue(entry, val), entry.unit ?? ""]);
+        await connection.execute(saveQuery, [entry.id, date, roundValue(entry, val), entry.unit ?? '']);
     });
 };
 
 export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterRow[]): Promise<void> => {
-    return useConnection(async (connection) => {
+    return useConnection(async connection => {
         const saveQuery = `INSERT INTO ${entry.tableTo} (id, ts, val, unit)
                            VALUES (?, ?, ?, ?)`;
 
@@ -48,28 +61,28 @@ export const saveDataArray = async (entry: TableItem, table: SqlIobrokerAdapterR
             if (row.val === 0 && !entry.writeZero) {
                 continue;
             }
-            await connection.execute(saveQuery, [entry.id, row.ts, roundValue(entry, row.val), entry.unit ?? ""]);
+            await connection.execute(saveQuery, [entry.id, row.ts, roundValue(entry, row.val), entry.unit ?? '']);
         }
     });
 };
 
 export const getAllTables = async (): Promise<string[]> => {
-    return useConnection(async (connection) => {
-        const [rows] = await connection.query("SHOW TABLES");
+    return useConnection(async connection => {
+        const [rows] = await connection.query('SHOW TABLES');
 
         const result = rows as Record<string, string>[];
 
         return result.map((row): string => {
-            return Object.keys(row).map((key) => row[key])[0];
+            return Object.keys(row).map(key => row[key])[0];
         });
     });
 };
 
 export const setTimeZone = async (timeZone?: string): Promise<void> => {
-    if (timeZone === "0" || !timeZone) {
+    if (timeZone === '0' || !timeZone) {
         return;
     }
-    return await useConnection(async (connection) => {
+    return await useConnection(async connection => {
         const query = `SET time_zone = ?`;
         await connection.query(query, timeZone);
     });

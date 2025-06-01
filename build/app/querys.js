@@ -21,6 +21,7 @@ __export(querys_exports, {
   createNewTable: () => createNewTable,
   getAllTables: () => getAllTables,
   getTableSize: () => getTableSize,
+  removeOldData: () => removeOldData,
   saveData: () => saveData,
   saveDataArray: () => saveDataArray,
   setTimeZone: () => setTimeZone
@@ -49,6 +50,18 @@ async function createNewTable(table) {
     await connection.query(query);
   });
 }
+const removeOldData = async (entry) => {
+  const timestamp = (0, import_lib.getRetentionTime)(entry);
+  if (timestamp === 0) {
+    return;
+  }
+  return (0, import_connection.useConnection)(async (connection) => {
+    const deleteQuery = `DELETE
+                             FROM ${entry.tableTo}
+                             WHERE ts <= ?`;
+    await connection.execute(deleteQuery, [timestamp]);
+  });
+};
 const saveData = async (entry, date, val) => {
   return (0, import_connection.useConnection)(async (connection) => {
     var _a;
@@ -116,6 +129,7 @@ const getTableSize = async (database, table) => {
   createNewTable,
   getAllTables,
   getTableSize,
+  removeOldData,
   saveData,
   saveDataArray,
   setTimeZone

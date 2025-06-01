@@ -23,8 +23,7 @@ delete data after it has been processed. The adapter is controlled by a schedule
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.1.0 (2025-06-01)
 
 * (MiRo1310) initial release
 

@@ -122,8 +122,8 @@ class SqlDataShifter extends utils.Adapter {
             if (sum === 0 && !entry.writeZero) {
               return;
             }
-            await (0, import_querys.saveData)(entry, date, sum);
             await (0, import_querys.removeOldData)(entry);
+            await (0, import_querys.saveData)(entry, date, sum);
           }
           if (entry.operation === "dif") {
             const sum = (0, import_lib.differenceResult)(result) * entry.factor;

@@ -239,7 +239,7 @@
             {
               "type": "cron",
               "complex": true,
-              "width": "10%",
+              "width": "500px",
               "min": 30,
               "validator": "data.schedule.length",
               "validatorErrorText": {
@@ -263,6 +263,7 @@
             {
               "type": "number",
               "min": 30,
+              "width": "100px",
               "validator": "data.time >= 30",
               "validatorErrorText": {
                 "de": "Bitte geben Sie einen Intervallbereich ein",
@@ -285,7 +286,7 @@
             {
               "type": "selectSendTo",
               "attr": "id",
-              "width": "250px",
+              "width": "200px",
               "title": {
                 "en": "ID",
                 "de": "ID"
@@ -308,7 +309,7 @@
             },
             {
               "type": "selectSendTo",
-              "width": "300px",
+              "width": "500px",
               "validator": "data.tableFrom",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine Quelltabelle ein",
@@ -331,7 +332,7 @@
             },
             {
               "type": "text",
-              "width": "300px",
+              "width": "700px",
               "validator": "data.tableTo.length",
               "validatorErrorText": {
                 "de": "Bitte geben Sie eine Zieltabelle ein",
@@ -365,6 +366,7 @@
             },
             {
               "type": "number",
+              "width": "100px",
               "title": {
                 "en": "Factor",
                 "de": "Faktor"
@@ -506,6 +508,7 @@
             },
             {
               "type": "number",
+              "width": "100px",
               "title": {
                 "en": "Retention time",
                 "de": "Aufbewahrungszeit"
@@ -521,6 +524,7 @@
             },
             {
               "type": "select",
+              "width": "100px",
               "title": {
                 "en": "Retention time unit",
                 "de": "Aufbewahrungszeit Einheit"

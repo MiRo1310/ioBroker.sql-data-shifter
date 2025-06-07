@@ -117,8 +117,8 @@ class SqlDataShifter extends utils.Adapter {
                         if (sum === 0 && !entry.writeZero) {
                             return;
                         }
-                        await saveData(entry, date, sum);
                         await removeOldData(entry);
+                        await saveData(entry, date, sum);
                     }
 
                     if (entry.operation === 'dif') {

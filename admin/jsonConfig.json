@@ -333,7 +333,7 @@
             },
             {
               "type": "number",
-              "width": "100px",
+              "width": "50px",
               "title": {
                 "en": "Factor",
                 "de": "Faktor"
@@ -469,7 +469,7 @@
               "width": "100px",
               "title": {
                 "en": "Retention time",
-                "de": "Aufbewahrungszeit"
+                "de": "Zeit"
               },
               "attr": "retentionValue",
               "filter": false,
@@ -482,10 +482,9 @@
             },
             {
               "type": "select",
-              "width": "100px",
               "title": {
                 "en": "Retention time unit",
-                "de": "Aufbewahrungszeit Einheit"
+                "de": "Einheit"
               },
               "validator": "!data.retentionValue || (data.retentionValue && data.retentionUnit)",
               "validatorErrorText": "Please select",

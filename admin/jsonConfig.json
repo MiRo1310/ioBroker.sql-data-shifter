@@ -23,10 +23,7 @@
           "md": 6,
           "sm": 12,
           "validator": "!!data.ip.length",
-          "validatorErrorText": {
-            "de": "Bitte geben Sie eine IP-Adresse ein",
-            "en": "Please enter an IP address"
-          },
+          "validatorErrorText": "Please enter an IP address",
           "validatorNoSaveOnError": true,
           "label": {
             "de": "IP-Adresse",
@@ -44,10 +41,7 @@
           "sm": 12,
           "type": "text",
           "validator": "!!data.user.length",
-          "validatorErrorText": {
-            "de": "Bitte geben Sie einen Benutzernamen ein",
-            "en": "Please enter a username"
-          },
+          "validatorErrorText": "Please enter a username",
           "tooltip": {
             "en": "Username for accessing the database",
             "de": "Benutzername für den Zugriff auf die Datenbank"
@@ -65,10 +59,7 @@
           "md": 6,
           "sm": 12,
           "validator": "!!data.password.length",
-          "validatorErrorText": {
-            "de": "Bitte geben Sie ein Passwort ein",
-            "en": "Please enter a password"
-          },
+          "validatorErrorText": "Please enter a password",
           "validatorNoSaveOnError": true,
           "label": {
             "de": "Passwort",
@@ -86,10 +77,7 @@
           "md": 6,
           "sm": 12,
           "validator": "!!data.database.length",
-          "validatorErrorText": {
-            "de": "Bitte geben Sie einen Datenbanknamen ein",
-            "en": "Please enter a database name"
-          },
+          "validatorErrorText": "Please enter a database name",
           "validatorNoSaveOnError": true,
           "label": {
             "de": "Datenbank",
@@ -115,10 +103,7 @@
           "md": 6,
           "sm": 12,
           "validator": "data.timeZone.length",
-          "validatorErrorText": {
-            "de": "Bitte korrigiere die Zeitzone",
-            "en": "Please correct the timezone"
-          },
+          "validatorErrorText": "Please correct the timezone",
           "validatorNoSaveOnError": true,
           "label": {
             "de": "Zeitzone",
@@ -144,10 +129,7 @@
           "width": "10%",
           "min": 30,
           "validator": "data.tableSizeCron.length",
-          "validatorErrorText": {
-            "de": "Bitte legen Sie einen Zeitplan fest",
-            "en": "Please set a schedule"
-          },
+          "validatorErrorText": "Please set a schedule",
           "newLine": true,
           "validatorNoSaveOnError": true,
           "label": {
@@ -242,10 +224,7 @@
               "width": "500px",
               "min": 30,
               "validator": "data.schedule.length",
-              "validatorErrorText": {
-                "de": "Bitte legen Sie einen Zeitplan fest",
-                "en": "Please set a schedule"
-              },
+              "validatorErrorText": "Please set a schedule",
               "validatorNoSaveOnError": true,
               "title": {
                 "en": "Schedule",
@@ -265,10 +244,7 @@
               "min": 30,
               "width": "100px",
               "validator": "data.time >= 30",
-              "validatorErrorText": {
-                "de": "Bitte geben Sie einen Intervallbereich ein",
-                "en": "Please enter a interval range"
-              },
+              "validatorErrorText": "Please enter a interval range",
               "validatorNoSaveOnError": true,
               "title": {
                 "en": "Time in seconds",
@@ -301,20 +277,14 @@
                 "data": "static"
               },
               "validator": "data.id",
-              "validatorErrorText": {
-                "de": "Bitte geben Sie eine ID ein",
-                "en": "Please enter an id"
-              },
+              "validatorErrorText": "Please enter an id",
               "validatorNoSaveOnError": true
             },
             {
               "type": "selectSendTo",
               "width": "500px",
               "validator": "data.tableFrom",
-              "validatorErrorText": {
-                "de": "Bitte geben Sie eine Quelltabelle ein",
-                "en": "Please enter a source table"
-              },
+              "validatorErrorText": "Please enter a source table",
               "validatorNoSaveOnError": true,
               "title": {
                 "en": "From table",
@@ -334,10 +304,7 @@
               "type": "text",
               "width": "700px",
               "validator": "data.tableTo.length",
-              "validatorErrorText": {
-                "de": "Bitte geben Sie eine Zieltabelle ein",
-                "en": "Please enter a target table"
-              },
+              "validatorErrorText": "Please enter a target table",
               "validatorNoSaveOnError": true,
               "title": {
                 "en": "Target table",
@@ -366,7 +333,7 @@
             },
             {
               "type": "number",
-              "width": "100px",
+              "width": "50px",
               "title": {
                 "en": "Factor",
                 "de": "Faktor"
@@ -376,10 +343,7 @@
               "sort": true,
               "default": 1,
               "validator": "data.factor > 0",
-              "validatorErrorText": {
-                "de": "Bitte geben Sie einen Faktor ein",
-                "en": "Please enter a factor"
-              },
+              "validatorErrorText": "Please enter a factor",
               "validatorNoSaveOnError": true,
               "tooltip": {
                 "en": "Factor for the calculation",
@@ -399,10 +363,7 @@
               "sort": true,
               "default": 0,
               "validator": "data.round % 1 == 0",
-              "validatorErrorText": {
-                "de": "Bitte geben Sie eine ganze Zahl ein",
-                "en": "Please enter a whole number"
-              },
+              "validatorErrorText": "Please enter a whole number",
               "validatorNoSaveOnError": true,
               "tooltip": {
                 "en": "Number of decimal places",
@@ -420,10 +381,7 @@
                 "de": "Operation"
               },
               "validator": "data.operation",
-              "validatorErrorText": {
-                "de": "Bitte wähle aus",
-                "en": "Please select"
-              },
+              "validatorErrorText": "Please select",
               "validatorNoSaveOnError": true,
               "attr": "operation",
               "tooltip": {
@@ -511,7 +469,7 @@
               "width": "100px",
               "title": {
                 "en": "Retention time",
-                "de": "Aufbewahrungszeit"
+                "de": "Zeit"
               },
               "attr": "retentionValue",
               "filter": false,
@@ -524,16 +482,12 @@
             },
             {
               "type": "select",
-              "width": "100px",
               "title": {
                 "en": "Retention time unit",
-                "de": "Aufbewahrungszeit Einheit"
+                "de": "Einheit"
               },
               "validator": "!data.retentionValue || (data.retentionValue && data.retentionUnit)",
-              "validatorErrorText": {
-                "de": "Bitte wähle aus",
-                "en": "Please select"
-              },
+              "validatorErrorText": "Please select",
               "validatorNoSaveOnError": true,
               "attr": "retentionUnit",
               "tooltip": {

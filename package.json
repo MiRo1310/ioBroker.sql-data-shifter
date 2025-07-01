@@ -43,7 +43,7 @@
     "chai-as-promised": "^7.1.2",
     "mocha": "^11.1.0",
     "rimraf": "^6.0.1",
-    "sinon": "^20.0.0",
+    "sinon": "^21.0.0",
     "sinon-chai": "^3.7.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
